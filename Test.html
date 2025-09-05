@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SOP Web App — SmartProdLine365</title>
+  <meta name="description" content="SOP web app with strict entity dropdowns, entity management, hidden admin for non-admins, user management, audit, runs, and localStorage persistence." />
+  <style>
+    :root { --bg:#0b1020; --panel:#11162a; --muted:#192038; --text:#e8ecf8; --text-dim:#b7c0d6; --brand:#6aa6ff; --brand-2:#8dd6ff; --good:#60e39a; --warn:#ffc66a; --danger:#ff7282; --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.35);} 
+    [data-theme="light"] { --bg:#f6f7fb; --panel:#fff; --muted:#eef1f7; --text:#101322; --text-dim:#3b415b; --brand:#2d6cff; --brand-2:#00a1ff; --good:#1ea672; --warn:#ff9f1a; --danger:#d7263d; --shadow:0 10px 25px rgba(16,19,34,.08);} 
+    *{box-sizing:border-box} html,body{height:100%} body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,"Helvetica Neue",Arial,"Noto Sans"}
+    a{color:var(--brand-2);text-decoration:none}
+    .app{display:grid;grid-template-columns:280px 1fr;grid-template-rows:64px 1fr;gap:16px;padding:16px;height:100%}
+    .app>header{grid-column:1/-1;background:var(--panel);border-radius:var(--radius);display:flex;align-items:center;gap:12px;padding:12px 16px;box-shadow:var(--shadow)}
+    .logo{display:inline-flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.3px;font-size:18px}
+    .logo-mark{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--brand-2));box-shadow:0 6px 16px rgba(0,0,0,.2);display:grid;place-items:center;font-weight:900}
+    .logo-mark span{font-size:14px;color:white}
+    .searchbar{flex:1;display:flex;align-items:center;gap:8px;background:var(--muted);padding:8px 10px;border-radius:12px}
+    .searchbar input{flex:1;background:transparent;border:0;color:var(--text);outline:0;font-size:14px}
+    .toolbar{display:flex;gap:8px;align-items:center}
+    .btn{background:var(--muted);border:1px solid transparent;color:var(--text);padding:8px 12px;border-radius:10px;font-size:13px;cursor:pointer;transition:.15s ease;display:inline-flex;align-items:center;gap:8px}
+    .btn:hover{transform:translateY(-1px)} .btn.brand{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff}
+    .btn.good{background:rgba(96,227,154,.15);border-color:rgba(96,227,154,.4);color:var(--good)}
+    .btn.warn{background:rgba(255,159,26,.12);border-color:rgba(255,159,26,.4);color:var(--warn)}
+    .btn.ghost{background:transparent;border-color:rgba(255,255,255,.08)} .btn.icon{padding:8px;width:36px;height:36px;justify-content:center}
+
+    aside{background:var(--panel);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);overflow:auto}
+    .nav h3{margin:8px 10px;font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.12em}
+    .nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;margin:4px 0;border-radius:10px;color:var(--text-dim)}
+    .nav a:hover,.nav a.active{background:var(--muted);color:var(--text)}
+
+    main{background:var(--panel);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);overflow:hidden;display:grid;grid-template-rows:auto 1fr}
+
+    .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
+    .chip{display:inline-flex;align-items:center;gap:8px;background:var(--muted);color:var(--text-dim);padding:6px 10px;border-radius:999px;font-size:12px}
+    .chip input{background:transparent;border:0;color:var(--text);outline:none}
+
+    .table-wrap{overflow:auto;border:1px solid rgba(255,255,255,.06);border-radius:12px}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    thead th{position:sticky;top:0;background:linear-gradient(0deg,var(--panel),var(--muted));text-align:left;font-weight:600;color:var(--text-dim);padding:10px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer}
+    tbody td{padding:12px 10px;border-bottom:1px dashed rgba(255,255,255,.06);color:var(--text)}
+    tbody tr:hover{background:rgba(255,255,255,.03)}
+    .status{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:600}
+    .status.Draft{background:rgba(255,114,130,.18);color:var(--danger)}
+    .status.In\ Review,.status[aria-label="In Review"],.status.Review{background:rgba(255,198,106,.18);color:var(--warn)}
+    .status.Approved{background:rgba(96,227,154,.18);color:var(--good)}
+    .status.Obsolete{background:rgba(183,192,214,.18);color:var(--text-dim)}
+
+    .tag{background:rgba(106,166,255,.14);color:var(--brand-2);border:1px solid rgba(106,166,255,.3);padding:2px 8px;border-radius:999px;font-size:12px;margin-right:6px}
+
+    .slideover{position:fixed;inset:0;display:none}
+    .slideover.active{display:grid;grid-template-columns:1fr min(560px,100%)}
+    .slideover .backdrop{background:rgba(0,0,0,.45)}
+    .panel{background:var(--panel);padding:16px;border-left:1px solid rgba(255,255,255,.06);overflow:auto}
+    .panel header{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:0;background:var(--panel);padding-bottom:8px;z-index:2}
+    .panel h2{margin:10px 0 4px} .meta{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;background:var(--muted);padding:12px;border-radius:12px}
+    .meta div{font-size:13px;color:var(--text-dim)} .meta strong{display:block;font-size:13px;color:var(--text)}
+    .section{margin-top:16px} .section h3{color:var(--text-dim);text-transform:uppercase;font-size:12px;letter-spacing:.14em;margin:0 0 8px}
+    .card{background:var(--muted);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px}
+    .steps ol{margin:0;padding-left:18px} .steps li{margin:8px 0}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+    .modal{position:fixed;inset:0;display:none;place-items:center}
+    .modal.active{display:grid}
+    .modal .paper{width:min(760px,92vw);max-height:86vh;overflow:auto;background:var(--panel);padding:16px;border-radius:16px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.08)}
+    .paper h3{margin:6px 0 12px}
+    .form{display:grid;gap:10px} .form .row{display:grid;gap:10px;grid-template-columns:repeat(2,1fr)}
+    .form label{font-size:12px;color:var(--text-dim)} .form input,.form select,.form textarea{width:100%;padding:10px;background:var(--muted);color:var(--text);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:14px}
+    .form textarea{min-height:90px;resize:vertical}
+
+    .toasts{position:fixed;right:16px;bottom:16px;display:grid;gap:8px;z-index:9999}
+    .toast{background:var(--panel);border:1px solid rgba(255,255,255,.08);padding:10px 12px;border-radius:10px;box-shadow:var(--shadow);font-size:14px}
+    .empty{text-align:center;color:var(--text-dim);padding:40px 10px}
+
+    /* Auth screen */
+    #auth{position:fixed;inset:0;display:none;place-items:center;background:linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.75));backdrop-filter:blur(4px);z-index:999}
+    #auth.active{display:grid}
+    #auth .card{width:min(520px,92vw)}
+    .user-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:var(--muted);border:1px solid rgba(255,255,255,.08);font-size:12px}
+
+    @media (max-width:980px){.app{grid-template-columns:1fr;grid-template-rows:64px auto 1fr} aside{grid-row:2}}
+  </style>
+</head>
+<body data-theme="dark">
+  <div id="auth">
+    <div class="card">
+      <h3 style="margin:0 0 8px">Sign in to SOP Web App</h3>
+      <div class="form" id="loginForm">
+        <div class="row">
+          <div>
+            <label>Username</label>
+            <input id="lg_user" placeholder="e.g., admin" required />
+          </div>
+          <div>
+            <label>Password</label>
+            <input id="lg_pass" type="password" placeholder="••••••••" required />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Entity / Company</label>
+            <select id="lg_entity"></select>
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button class="btn brand" id="lg_submit">Sign in</button>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text-dim)">Demo users are seeded: <code>admin / admin123</code> (Admin, TFNW) and <code>qa / qa123</code> (User, TRF).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="app" id="app" style="visibility:hidden;">
+    <header>
+      <div class="logo"><div class="logo-mark" aria-hidden="true"><span>S</span></div> SOP Web App</div>
+      <div class="searchbar" role="search">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M13.5 13.5L18 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
+        <input id="search" placeholder="Search SOPs by title, owner, dept, tags… (⌘/Ctrl+K)" />
+      </div>
+      <div class="toolbar">
+        <span class="user-pill" id="userPill">—</span>
+        <button class="btn" id="filterBtn" title="Filters">Filters</button>
+        <button class="btn" id="refreshBtn" title="Refresh data">Refresh</button>
+        <button class="btn good" id="exportCsvBtn" title="Export CSV">Export</button>
+        <button class="btn warn" id="printBtn" title="Print current view">Print</button>
+        <button class="btn brand" id="newSopBtn">New SOP</button>
+        <button class="btn ghost" id="aiBtn" title="Ask AI to draft steps">Ask AI</button>
+        <button class="btn icon" id="themeBtn" title="Toggle theme">🌓</button>
+        <button class="btn" id="logoutBtn" title="Sign out">Logout</button>
+      </div>
+    </header>
+
+    <aside>
+      <nav class="nav">
+        <h3>Navigation</h3>
+        <a href="#" class="active" data-page="sops">📄 SOPs</a>
+        <a href="#" data-page="runs">✅ Runs</a>
+        <a href="#" data-page="training">🎓 Training</a>
+        <a href="#" data-page="audits">🔍 Audits</a>
+        <a href="#" data-page="templates">🧩 Templates</a>
+        <a href="#" data-page="admin" id="adminLink">🛠️ Admin</a>
+        <a href="#" data-page="settings">⚙️ Settings</a>
+      </nav>
+    </aside>
+
+    <main>
+      <div class="filters" id="filters">
+        <span class="chip">Entity:
+          <select id="entityFilter"></select>
+        </span>
+        <span class="chip">Status:
+          <select id="statusFilter">
+            <option value="">All</option>
+            <option>Draft</option>
+            <option>In Review</option>
+            <option>Approved</option>
+            <option>Obsolete</option>
+          </select>
+        </span>
+        <span class="chip">Department:
+          <select id="deptFilter">
+            <option value="">All</option>
+            <option>Production</option>
+            <option>Quality</option>
+            <option>Maintenance</option>
+            <option>Warehouse</option>
+            <option>Safety</option>
+          </select>
+        </span>
+        <span class="chip">Owner:
+          <input id="ownerFilter" placeholder="e.g., Greg" />
+        </span>
+        <span class="chip">Tags:
+          <input id="tagFilter" placeholder="comma separated" />
+        </span>
+        <button class="btn" id="clearFilters">Clear</button>
+        <span class="chip" id="countChip">0 shown</span>
+      </div>
+
+      <div class="table-wrap" id="tableWrap">
+        <table id="sopTable" aria-describedby="countChip">
+          <thead>
+            <tr>
+              <th data-sort="id">SOP ID</th>
+              <th data-sort="title">Title</th>
+              <th data-sort="entity">Entity</th>
+              <th data-sort="department">Department</th>
+              <th data-sort="owner">Owner</th>
+              <th data-sort="status">Status</th>
+              <th data-sort="effectiveDate">Effective</th>
+              <th data-sort="version">Ver</th>
+              <th>Tags</th>
+              <th style="min-width:120px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="sopTbody"></tbody>
+        </table>
+      </div>
+      <div id="emptyState" class="empty" hidden>
+        No SOPs match your filters. Try clearing filters or add a new SOP.
+      </div>
+    </main>
+  </div>
+
+  <!-- Slide-over Details -->
+  <div class="slideover" id="detailOver">
+    <div class="backdrop" aria-hidden="true"></div>
+    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+      <header>
+        <div>
+          <div class="status" id="detailStatus">Draft</div>
+          <h2 id="detailTitle">SOP-0001 — Example</h2>
+          <div style="font-size:13px;color:var(--text-dim);">Last updated <span id="detailUpdated">—</span></div>
+        </div>
+        <div class="toolbar">
+          <button class="btn" id="runBtn">Run</button>
+          <button class="btn" id="cloneBtn" title="Clone as new version">Clone</button>
+          <button class="btn brand" id="editBtn">Edit</button>
+          <button class="btn warn" id="printSopBtn">Print</button>
+          <button class="btn icon" id="closeDetail">✖</button>
+        </div>
+      </header>
+
+      <div class="section">
+        <div class="meta" id="detailMeta"></div>
+      </div>
+
+      <div class="section grid2">
+        <div class="card steps">
+          <h3>Steps</h3>
+          <ol id="detailSteps"></ol>
+        </div>
+        <div class="card">
+          <h3>Attachments</h3>
+          <div id="detailFiles">—</div>
+          <h3 style="margin-top:12px;">Risk</h3>
+          <div id="detailRisk"></div>
+        </div>
+      </div>
+
+      <div class="section grid2">
+        <div class="card">
+          <h3>Approvals</h3>
+          <div id="detailApprovals"></div>
+        </div>
+        <div class="card">
+          <h3>Version History</h3>
+          <div id="detailHistory"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: New/Edit SOP -->
+  <div class="modal" id="editModal">
+    <div class="paper">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <h3 id="editTitle">New SOP</h3>
+        <button class="btn icon" id="closeEdit">✖</button>
+      </div>
+      <form class="form" id="sopForm">
+        <div class="row">
+          <div>
+            <label>Title</label>
+            <input required id="f_title" placeholder="e.g., Allergen Washdown Procedure" />
+          </div>
+          <div>
+            <label>Entity</label>
+            <select id="f_entity"></select>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Department</label>
+            <select id="f_department" required>
+              <option>Production</option>
+              <option>Quality</option>
+              <option>Maintenance</option>
+              <option>Warehouse</option>
+              <option>Safety</option>
+            </select>
+          </div>
+          <div>
+            <label>Owner</label>
+            <input required id="f_owner" placeholder="e.g., Greg" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Status</label>
+            <select id="f_status">
+              <option>Draft</option>
+              <option>In Review</option>
+              <option>Approved</option>
+              <option>Obsolete</option>
+            </select>
+          </div>
+          <div>
+            <label>Effective Date</label>
+            <input type="date" id="f_effective" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Tags</label>
+            <input id="f_tags" placeholder="comma, separated, tags" />
+          </div>
+          <div>
+            <label>Change Summary</label>
+            <input id="f_change" placeholder="Initial draft / update details" />
+          </div>
+        </div>
+        <div>
+          <label>Steps (one per line)</label>
+          <textarea id="f_steps" placeholder="1. Prep area\n2. Isolate line\n3. Wash...\n"></textarea>
+        </div>
+        <div class="row">
+          <div>
+            <label>Risk Severity (1–5)</label>
+            <input type="number" min="1" max="5" id="f_risk_sev" value="2" />
+          </div>
+          <div>
+            <label>Risk Likelihood (1–5)</label>
+            <input type="number" min="1" max="5" id="f_risk_like" value="2" />
+          </div>
+        </div>
+        <div>
+          <label>Risk Mitigations</label>
+          <textarea id="f_risk_mit" placeholder="PPE required, lockout/tagout, allergen swabs, etc."></textarea>
+        </div>
+        <div class="row">
+          <div>
+            <label>Approver Roles (comma separated)</label>
+            <input id="f_approver_roles" placeholder="QA Manager, Production Lead" />
+          </div>
+          <div>
+            <label>Training Required Roles</label>
+            <input id="f_training_roles" placeholder="Operators, Sanitation" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Attachment Names (comma separated)</label>
+            <input id="f_files" placeholder="washdown-checklist.pdf, swab-template.xlsx" />
+          </div>
+          <div>
+            &nbsp;
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;">
+          <button type="button" class="btn" id="aiDraftBtn">AI Draft Steps</button>
+          <button type="submit" class="btn brand">Save</button>
+        </div>
+        <input type="hidden" id="f_id" />
+        <input type="hidden" id="f_version" />
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Run SOP -->
+  <div class="modal" id="runModal">
+    <div class="paper">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <h3 id="runTitle">Run SOP</h3>
+        <button class="btn icon" id="closeRun">✖</button>
+      </div>
+      <form class="form" id="runForm">
+        <div class="row">
+          <div>
+            <label>Operator</label>
+            <input id="r_operator" placeholder="e.g., Cole" required />
+          </div>
+          <div>
+            <label>Location / Line</label>
+            <input id="r_location" placeholder="e.g., Line 10" />
+          </div>
+        </div>
+        <div class="card steps" id="runSteps"></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;">
+          <button type="submit" class="btn brand">Complete Run</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Ask AI -->
+  <div class="modal" id="aiModal">
+    <div class="paper">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <h3>Ask AI to draft steps</h3>
+        <button class="btn icon" id="closeAi">✖</button>
+      </div>
+      <div class="form">
+        <label>Describe the procedure</label>
+        <textarea id="aiPrompt" placeholder="e.g., End-of-shift allergen washdown for Room 06..09 including pre-op swabs"></textarea>
+        <div style="display:flex;justify-content:flex-end;gap:8px;">
+          <button class="btn" id="aiGenerate">Generate</button>
+        </div>
+        <div class="card" id="aiOutput" aria-live="polite">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts"></div>
+
+  <script>
+    const $ = (sel, el=document) => el.querySelector(sel);
+    const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+    const store = { get(k,f){ try{return JSON.parse(localStorage.getItem(k)) ?? f}catch{return f}}, set(k,v){ localStorage.setItem(k, JSON.stringify(v)) } };
+    const uid = () => (Math.random().toString(36).slice(2,7) + Date.now().toString(36)).toUpperCase();
+    const today = () => new Date().toISOString().slice(0,10);
+    const fmtDate = d => new Date(d).toLocaleString();
+
+    // --- Entities (canonical) ---
+    function seedEntities(){ if(!store.get('sopEntities')) store.set('sopEntities', ['TFNW','TRF']); }
+    function getEntities(){ return store.get('sopEntities', ['TFNW','TRF']); }
+    function saveEntities(arr){ store.set('sopEntities', Array.from(new Set(arr)).filter(Boolean)); }
+
+    // --- Auth & Users ---
+    function seedUsers(){
+      if(store.get('sopUsers')) return;
+      const users=[
+        { id: uid(), username:'admin', password:'admin123', role:'Admin', entity:'TFNW', displayName:'Admin User' },
+        { id: uid(), username:'qa',    password:'qa123',    role:'User',  entity:'TRF',  displayName:'QA Analyst' }
+      ];
+      store.set('sopUsers', users);
+    }
+    function getUsers(){ return store.get('sopUsers', []); }
+    function saveUsers(arr){ store.set('sopUsers', arr); }
+    function session(){ return store.get('sopSession', null); }
+    function setSession(s){ store.set('sopSession', s); }
+    function currentUser(){ const s=session(); if(!s) return null; return getUsers().find(u=>u.username===s.username) || null; }
+
+    function showAuth(){ $('#auth').classList.add('active'); $('#app').style.visibility='hidden'; populateAllEntityDropdowns(); }
+    function hideAuth(){ $('#auth').classList.remove('active'); $('#app').style.visibility='visible'; }
+    function login(){
+      const u=$('#lg_user').value.trim(); const p=$('#lg_pass').value; const ent=$('#lg_entity').value;
+      const user=getUsers().find(x=>x.username===u && x.password===p && x.entity===ent);
+      if(!user){ toast('Invalid credentials'); return; }
+      setSession({ username:user.username });
+      audit('auth:login', { user:user.username, entity:user.entity });
+      initAppForUser();
+    }
+    function logout(){ const u=currentUser(); setSession(null); audit('auth:logout', { user:u?.username||'—', entity:u?.entity||'—' }); showAuth(); updateUserPill(); }
+
+    // --- App Data ---
+    const state = { sort:{key:'effectiveDate', dir:'desc'}, filter:{entity:'',status:'',dept:'',owner:'',tags:[],q:''}, page:'sops', current:null, editing:null, adminTab:'manage'};
+
+    function seedSops(){
+      if (store.get('sopData')) return;
+      const sample=[
+        { id:'SOP-0001', entity:'TFNW', title:'Allergen Washdown — Room 06..09', department:'Production', owner:'Greg', status:'Approved', effectiveDate:today(), version:3, tags:['washdown','allergen','sanitation'], steps:[{id:uid(),text:'Stop production and clear line.'},{id:uid(),text:'Apply lockout/tagout on power sources.'},{id:uid(),text:'Disassemble product contact parts and stage for wash.'},{id:uid(),text:'Pre-rinse from top to bottom for 5 minutes.'},{id:uid(),text:'Apply approved detergent and scrub all surfaces.'},{id:uid(),text:'Rinse thoroughly until water runs clear.'},{id:uid(),text:'Sanitize with approved chemical; hold time per label.'},{id:uid(),text:'Perform allergen swabs and record results.'},{id:uid(),text:'QA signs off; remove LOTO and release line.'}], approvals:[{role:'Production Lead',name:'Greg',date:today(),status:'Approved'},{role:'QA Manager',name:'Nhi',date:today(),status:'Approved'}], history:[{version:3,date:today(),changedBy:'Greg',changeSummary:'Added swab step & hold time'},{version:2,date:today(),changedBy:'Greg',changeSummary:'Clarified LOTO'}], attachments:[{name:'washdown-checklist.pdf'},{name:'sanitizer-label.png'}], risk:{severity:3,likelihood:2,mitigations:'PPE, lockout/tagout, chemical safety.'}, trainingRoles:['Operators','Sanitation'] },
+        { id:'SOP-0002', entity:'TRF', title:'Label Verification — Starbucks', department:'Quality', owner:'Sukhpreet', status:'In Review', effectiveDate:today(), version:1, tags:['label','verification','starbucks'], steps:[{id:uid(),text:'Verify SKU vs. production schedule.'},{id:uid(),text:'Cross-check allergen statements and claims.'},{id:uid(),text:'Scan barcode and confirm in system.'},{id:uid(),text:'Place samples in retain room with date/lot.'}], approvals:[{role:'QA Manager',name:'Nhi',date:null,status:'Pending'}], history:[{version:1,date:today(),changedBy:'Sukhpreet',changeSummary:'Initial draft'}], attachments:[{name:'label-verification-template.xlsx'}], risk:{severity:2,likelihood:2,mitigations:'Double sign-off for allergen labels.'}, trainingRoles:['Quality'] },
+        { id:'SOP-0003', entity:'TFNW', title:'Preventive Maintenance — Line 10', department:'Maintenance', owner:'Nathan', status:'Draft', effectiveDate:today(), version:1, tags:['pm','line10'], steps:[{id:uid(),text:'Lockout/tagout main breaker.'},{id:uid(),text:'Lubricate bearings per chart.'}], approvals:[{role:'Maintenance Manager',name:'Nathan',status:'Pending',date:null}], history:[{version:1,date:today(),changedBy:'Nathan',changeSummary:'Initial draft'}], attachments:[], risk:{severity:4,likelihood:2,mitigations:'LOTO, fall protection.'}, trainingRoles:['Maintenance'] }
+      ];
+      store.set('sopData', sample); store.set('sopRuns', []); store.set('sopAudit', []);
+    }
+
+    function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; $('#toasts').appendChild(t); setTimeout(()=>{t.style.opacity=.0;t.style.transform='translateY(6px)';},2600); setTimeout(()=>t.remove(),3200); }
+    function audit(event, detail){ const log=store.get('sopAudit', []); log.push({time:new Date().toISOString(), event, detail}); store.set('sopAudit', log); }
+
+    // --- Rendering ---
+    function updateUserPill(){ const u=currentUser(); const pill=$('#userPill'); pill.textContent = u? `${u.displayName||u.username} · ${u.role} · ${u.entity}` : '—'; const adminLink=$('#adminLink'); if(u && u.role==='Admin'){ adminLink.style.display='flex'; } else { adminLink.style.display='none'; if(state.page==='admin') { state.page='sops'; renderPage(); } } }
+
+    function populateAllEntityDropdowns(){
+      const entities = getEntities();
+      // Login
+      if($('#lg_entity')) $('#lg_entity').innerHTML = entities.map(e=>`<option>${e}</option>`).join('');
+      // Filters
+      if($('#entityFilter')) $('#entityFilter').innerHTML = ['<option value="">All</option>', ...entities.map(e=>`<option>${e}</option>`)].join('');
+      // Edit form
+      if($('#f_entity')) $('#f_entity').innerHTML = entities.map(e=>`<option>${e}</option>`).join('');
+    }
+
+    function render(){
+      const data = store.get('sopData', []);
+      const u=currentUser();
+      let rows = data.filter(row => {
+        // Entity scope: Users only see their entity; Admin can use filter All/any
+        const entityOk = (u?.role==='Admin') ? (!state.filter.entity || row.entity===state.filter.entity) : (row.entity===u?.entity);
+        const q = state.filter.q.toLowerCase();
+        const tags = (state.filter.tags||[]).map(s=>s.trim().toLowerCase()).filter(Boolean);
+        const rowTags = (row.tags||[]).map(t=>t.toLowerCase());
+        const matchesQ = !q || [row.id,row.title,row.entity,row.department,row.owner,row.status,row.tags?.join(' ')].join(' ').toLowerCase().includes(q);
+        const matchesStatus = !state.filter.status || row.status===state.filter.status;
+        const matchesDept = !state.filter.dept || row.department===state.filter.dept;
+        const matchesOwner = !state.filter.owner || row.owner.toLowerCase().includes(state.filter.owner.toLowerCase());
+        const matchesTags = tags.length===0 || tags.every(t=>rowTags.includes(t));
+        return entityOk && matchesQ && matchesStatus && matchesDept && matchesOwner && matchesTags;
+      });
+      const {key,dir} = state.sort; rows.sort((a,b)=>{ let va=a[key], vb=b[key]; if(key==='effectiveDate'){va=new Date(va);vb=new Date(vb)} if(key==='version'){va=+va;vb=+vb} return dir==='asc'?(va>vb?1:va<vb?-1:0):(va<vb?1:va>vb?-1:0); });
+      const tbody=$('#sopTbody'); tbody.innerHTML=''; rows.forEach(r=>tbody.appendChild(tr(r)));
+      $('#countChip').textContent=`${rows.length} shown`;
+      $('#emptyState').hidden = rows.length!==0;
+    }
+
+    function tr(row){
+      const tr=document.createElement('tr'); tr.tabIndex=0; tr.setAttribute('role','button');
+      const tagHtml=(row.tags||[]).map(t=>`<span class=\"tag\">${escapeHtml(t)}</span>`).join('');
+      tr.innerHTML=`
+        <td>${escapeHtml(row.id)}</td>
+        <td>${escapeHtml(row.title)}</td>
+        <td>${escapeHtml(row.entity)}</td>
+        <td>${escapeHtml(row.department)}</td>
+        <td>${escapeHtml(row.owner)}</td>
+        <td><span class=\"status ${row.status}\" aria-label=\"${row.status}\">${row.status}</span></td>
+        <td>${row.effectiveDate||''}</td>
+        <td>${row.version ?? 1}</td>
+        <td>${tagHtml}</td>
+        <td>
+          <button class=\"btn\" data-act=\"open\" data-id=\"${row.id}\">Open</button>
+          <button class=\"btn\" data-act=\"quickrun\" data-id=\"${row.id}\">Run</button>
+        </td>`;
+      tr.addEventListener('click', (e)=>{
+        const actBtn = e.target.closest('button[data-act]');
+        if(actBtn){ const act=actBtn.dataset.act; if(act==='open') openDetail(row.id); if(act==='quickrun') startRun(row.id); }
+        else openDetail(row.id);
+      });
+      return tr;
+    }
+
+    function openDetail(id){
+      const row = store.get('sopData', []).find(r=>r.id===id); if(!row) return; state.current=row;
+      $('#detailTitle').textContent = `${row.id} — ${row.title}`; const st=$('#detailStatus'); st.textContent=row.status; st.className=`status ${row.status}`;
+      $('#detailUpdated').textContent = fmtDate(row.history?.[0]?.date || row.effectiveDate || new Date());
+      $('#detailMeta').innerHTML = `<div><strong>Entity</strong>${escapeHtml(row.entity)}</div><div><strong>Department</strong>${escapeHtml(row.department)}</div><div><strong>Owner</strong>${escapeHtml(row.owner)}</div><div><strong>Effective</strong>${row.effectiveDate||'—'}</div><div><strong>Version</strong>${row.version||1}</div><div><strong>Status</strong>${row.status}</div><div><strong>Tags</strong>${(row.tags||[]).join(', ')||'—'}</div>`;
+      $('#detailSteps').innerHTML = row.steps?.map((s,i)=>`<li>${escapeHtml(s.text)}</li>`).join('') || '—';
+      $('#detailFiles').innerHTML = (row.attachments?.length? row.attachments.map(f=>`📎 ${escapeHtml(f.name)}`).join('<br/>') : '—');
+      $('#detailRisk').innerHTML = `Severity: <b>${row.risk?.severity??'—'}</b> · Likelihood: <b>${row.risk?.likelihood??'—'}</b><br/>Mitigations: ${escapeHtml(row.risk?.mitigations||'—')}`;
+      $('#detailApprovals').innerHTML = (row.approvals?.length? row.approvals.map(a=>{ const badge=a.status==='Approved'?'✅':a.status==='Rejected'?'⛔':'⏳'; return `${badge} <b>${escapeHtml(a.role)}</b> — ${escapeHtml(a.name||'—')} ${a.date? 'on '+a.date: ''}`; }).join('<br/>') : '—');
+      $('#detailHistory').innerHTML = (row.history?.length? row.history.map(h=>`v${h.version} — ${h.date} — ${escapeHtml(h.changedBy)} — ${escapeHtml(h.changeSummary||'')}`).join('<br/>') : '—');
+      $('#detailOver').classList.add('active');
+    }
+    function closeDetail(){ $('#detailOver').classList.remove('active'); }
+
+    // --- Edit/Create SOP ---
+    function openEdit(row=null){
+      const u=currentUser(); if(!u) return; state.editing=row; $('#editTitle').textContent=row?`Edit ${row.id}`:'New SOP';
+      populateAllEntityDropdowns();
+      const defaultEntity = row?.entity || u.entity;
+      $('#f_id').value=row?.id||''; $('#f_version').value=row?.version||1; $('#f_title').value=row?.title||''; $('#f_entity').value=defaultEntity; $('#f_department').value=row?.department||'Production'; $('#f_owner').value=row?.owner||u.displayName||u.username; $('#f_status').value=row?.status||'Draft'; $('#f_effective').value=row?.effectiveDate||today(); $('#f_tags').value=(row?.tags||[]).join(', '); $('#f_steps').value=(row?.steps||[]).map(s=>s.text).join('\n'); $('#f_risk_sev').value=row?.risk?.severity??2; $('#f_risk_like').value=row?.risk?.likelihood??2; $('#f_risk_mit').value=row?.risk?.mitigations||''; $('#f_approver_roles').value=(row?.approvals||[]).map(a=>a.role).join(', '); $('#f_training_roles').value=(row?.trainingRoles||[]).join(', '); $('#f_files').value=(row?.attachments||[]).map(a=>a.name).join(', '); $('#f_change').value='';
+      $('#editModal').classList.add('active');
+    }
+
+    function saveEdit(e){
+      e.preventDefault(); const u=currentUser(); if(!u) return; const data=store.get('sopData', []); const id=$('#f_id').value || genSopId(data); const existingIdx=data.findIndex(r=>r.id===id); const isNew=existingIdx===-1; const version=isNew?1:Number($('#f_version').value||1);
+      const steps=$('#f_steps').value.split(/\n+/).map(s=>s.replace(/^\d+[\).]\s*/,'').trim()).filter(Boolean).map(s=>({id:uid(),text:s}));
+      const approvals=$('#f_approver_roles').value.split(',').map(s=>s.trim()).filter(Boolean).map(r=>({role:r,name:'',status:'Pending',date:null}));
+      const attachments=$('#f_files').value.split(',').map(s=>s.trim()).filter(Boolean).map(n=>({name:n}));
+      const historyEntry={version:version, date:today(), changedBy: (u.displayName||u.username), changeSummary: $('#f_change').value || (isNew?'Initial draft':'Edit')};
+      const entitySel = $('#f_entity').value;
+      const row={ id, entity: entitySel, title:$('#f_title').value.trim(), department:$('#f_department').value, owner:$('#f_owner').value.trim(), status:$('#f_status').value, effectiveDate:$('#f_effective').value||today(), version:version, tags:$('#f_tags').value.split(',').map(s=>s.trim()).filter(Boolean), steps, approvals: approvals.length? approvals : (state.editing?.approvals||[]), attachments, history: isNew? [historyEntry] : [historyEntry, ...(state.editing?.history||[])], risk:{ severity:Number($('#f_risk_sev').value||2), likelihood:Number($('#f_risk_like').value||2), mitigations:$('#f_risk_mit').value.trim() }, trainingRoles: $('#f_training_roles').value.split(',').map(s=>s.trim()).filter(Boolean) };
+      if(isNew){ data.push(row); audit('sop:create', {sopId:row.id, title:row.title, user:u.username, entity:row.entity}); } else { data[existingIdx]=row; audit('sop:update', {sopId:row.id, user:u.username, entity:row.entity}); }
+      store.set('sopData', data); $('#editModal').classList.remove('active'); toast(isNew?'SOP created':'SOP updated'); render(); openDetail(row.id);
+    }
+
+    function genSopId(data){ const nums=data.map(d=>Number(d.id.replace(/\D/g,''))).filter(n=>!isNaN(n)); const next=(nums.length?Math.max(...nums):0)+1; return `SOP-${String(next).padStart(4,'0')}`; }
+    function cloneVersion(){ if(!state.current) return; const u=currentUser(); const data=store.get('sopData', []); const row=JSON.parse(JSON.stringify(state.current)); row.version=Number(row.version||1)+1; row.status='Draft'; row.history=[{version:row.version,date:today(),changedBy:(u?.displayName||u?.username||'—'),changeSummary:'Cloned new version'}, ...(row.history||[])]; data[data.findIndex(r=>r.id===row.id)]=row; store.set('sopData', data); audit('sop:clone', {sopId:row.id, user:u?.username||'—', entity:row.entity}); toast(`Cloned ${row.id} to v${row.version}`); openDetail(row.id); render(); }
+
+    // --- Run SOP ---
+    function startRun(id){ const row=store.get('sopData', []).find(r=>r.id===id); if(!row) return; state.current=row; $('#runTitle').textContent=`Run ${row.id} — ${row.title}`; const box=$('#runSteps'); box.innerHTML=`<h3>Checklist</h3>${row.steps.map((s,i)=>`<label style="display:flex;gap:10px;align-items:flex-start;margin:8px 0;"><input type='checkbox' data-step='${i}'/><div><b>Step ${i+1}.</b> ${escapeHtml(s.text)}<div style='font-size:12px;color:var(--text-dim);' id='runTime_${i}'>—</div></div></label>`).join('')}`; $('#runModal').classList.add('active'); box.addEventListener('change', (e)=>{ const cb=e.target.closest('input[type="checkbox"]'); if(!cb) return; const i=cb.dataset.step; const el=$(`#runTime_${i}`); el.textContent=cb.checked?`Completed at ${new Date().toLocaleTimeString()}`:'—'; }, { once:true }); }
+    function completeRun(e){ e.preventDefault(); const u=currentUser(); const operator=$('#r_operator').value.trim(); if(!operator){ toast('Operator required'); return; } const run={ id:uid(), sopId:state.current.id, title:state.current.title, operator, location:$('#r_location').value, time:new Date().toISOString(), entity: state.current.entity }; const runs=store.get('sopRuns', []); runs.push(run); store.set('sopRuns', runs); audit('sop:run', { sopId: run.sopId, user: operator, entity: run.entity, location: run.location, by: u?.username||'—' }); $('#runModal').classList.remove('active'); toast('Run recorded'); }
+
+    // --- Export / Print ---
+    function exportCsv(){ const data=store.get('sopData', []); const rows=[["SOP ID","Title","Entity","Department","Owner","Status","Effective","Version","Tags"]].concat(data.map(r=>[r.id,r.title,r.entity,r.department,r.owner,r.status,r.effectiveDate,r.version,(r.tags||[]).join('|')])); const csv=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n'); download(csv,`sops-${today()}.csv`,'text/csv'); toast('CSV exported'); }
+    function download(content, filename, type){ const blob=new Blob([content],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); }
+    function printView(){ window.print(); }
+    function printSop(){ const pane=$('.panel'); const html=`<!doctype html><html><head><title>${$('#detailTitle').textContent}</title><style>body{font-family:Inter,Arial;padding:24px} h1{margin:0 0 8px} .muted{color:#555} .steps ol{padding-left:20px}</style></head><body><h1>${$('#detailTitle').textContent}</h1><div class='muted'>${$('#detailStatus').textContent} · Updated ${$('#detailUpdated').textContent}</div>${pane.innerHTML}</body></html>`; const w=window.open('', '_blank'); w.document.write(html); w.document.close(); w.focus(); w.print(); }
+
+    function aiDraftFromPrompt(text){ const tokens=text.split(/[.,;\n]/).map(s=>s.trim()).filter(Boolean); const base=['Review relevant safety and PPE requirements.','Prepare work area and verify materials/tools.','Execute core steps in correct sequence.','Record data and deviations.','Clean up, restore equipment, and sign off.']; const steps=[...tokens.map(t=>`Perform: ${t}`), ...base]; return Array.from(new Set(steps)).slice(0,12); }
+    function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c])); }
+    function toggleTheme(){ const root=document.body; const cur=root.getAttribute('data-theme')||'dark'; root.setAttribute('data-theme', cur==='dark'?'light':'dark'); localStorage.setItem('sopTheme', root.getAttribute('data-theme')); }
+
+    // --- Users Admin ---
+    function renderUsersAdmin(container){
+      const u=currentUser(); if(u?.role!=='Admin'){ container.innerHTML = '<div class="empty">Admins only</div>'; return; }
+      const users=getUsers(); const entities=getEntities();
+      container.innerHTML = `
+        <div class='form' id='userForm'>
+          <div class='row'>
+            <div><label>Username</label><input id='usr_username' /></div>
+            <div><label>Password</label><input id='usr_password' type='text' /></div>
+          </div>
+          <div class='row'>
+            <div><label>Display Name</label><input id='usr_display' /></div>
+            <div><label>Entity</label><select id='usr_entity'>${entities.map(e=>`<option>${e}</option>`).join('')}</select></div>
+          </div>
+          <div class='row'>
+            <div><label>Role</label><select id='usr_role'><option>User</option><option>Admin</option></select></div>
+            <div style='display:flex;align-items:end;gap:8px;'><button class='btn brand' id='usr_add'>Add User</button></div>
+          </div>
+        </div>
+        <div class='table-wrap' style='margin-top:12px;'>
+          <table><thead><tr><th>Username</th><th>Display</th><th>Entity</th><th>Role</th><th>Actions</th></tr></thead><tbody>
+            ${users.map(x=>`<tr>
+              <td>${escapeHtml(x.username)}</td>
+              <td>${escapeHtml(x.displayName||'')}</td>
+              <td>${escapeHtml(x.entity)}</td>
+              <td>${escapeHtml(x.role)}</td>
+              <td>
+                <button class='btn' data-edituser='${x.username}'>Edit</button>
+                <button class='btn warn' data-deluser='${x.username}'>Delete</button>
+                <button class='btn' data-resetpw='${x.username}'>Reset PW</button>
+              </td>
+            </tr>`).join('')}
+          </tbody></table>
+        </div>`;
+
+      $('#usr_add').addEventListener('click', ()=>{
+        const arr=getUsers();
+        const uo={ id:uid(), username: $('#usr_username').value.trim(), password: $('#usr_password').value, role: $('#usr_role').value, entity: $('#usr_entity').value, displayName: $('#usr_display').value.trim() };
+        if(!uo.username || !uo.password){ toast('Username and Password required'); return; }
+        if(arr.some(a=>a.username===uo.username)){ toast('Username exists'); return; }
+        arr.push(uo); saveUsers(arr); audit('user:create',{ username: uo.username, role: uo.role, entity: uo.entity }); toast('User added'); renderPage();
+      });
+      $$('#tableWrap [data-deluser]').forEach(b=> b.addEventListener('click', ()=>{
+        const who=b.dataset.deluser; if(who===currentUser()?.username){ toast('Cannot delete current user'); return; }
+        const arr=getUsers(); const idx=arr.findIndex(a=>a.username===who); if(idx>-1){ const [rem]=arr.splice(idx,1); saveUsers(arr); audit('user:delete',{ username: rem.username, entity: rem.entity }); toast('User deleted'); renderPage(); }
+      }));
+      $$('#tableWrap [data-resetpw]').forEach(b=> b.addEventListener('click', ()=>{
+        const who=b.dataset.resetpw; const arr=getUsers(); const it=arr.find(a=>a.username===who); if(!it) return; const np=prompt('New password for '+who+':',''); if(!np) return; it.password=np; saveUsers(arr); audit('user:resetpw',{ username: who }); toast('Password reset');
+      }));
+      $$('#tableWrap [data-edituser]').forEach(b=> b.addEventListener('click', ()=>{
+        const who=b.dataset.edituser; const arr=getUsers(); const it=arr.find(a=>a.username===who); if(!it) return; const dn=prompt('Display name', it.displayName||'')||it.displayName; const entSel=prompt('Entity (pick from list): '+getEntities().join(', '), it.entity)||it.entity; const role=prompt('Role (User/Admin)', it.role)||it.role; if(!getEntities().includes(entSel)){ toast('Unknown entity'); return; } it.displayName=dn; it.entity=entSel; it.role=role==='Admin'?'Admin':'User'; saveUsers(arr); audit('user:update',{ username: who, entity: entSel, role: it.role }); toast('User updated'); renderPage();
+      }));
+    }
+
+    // --- Entities Admin ---
+    function renderEntitiesAdmin(container){
+      const u=currentUser(); if(u?.role!=='Admin'){ container.innerHTML = '<div class="empty">Admins only</div>'; return; }
+      const entities=getEntities();
+      container.innerHTML = `
+        <div class='form'>
+          <div class='row'>
+            <div><label>New Entity</label><input id='ent_new' placeholder='e.g., ACME-PLANT1' /></div>
+            <div style='display:flex;align-items:end;gap:8px;'><button class='btn brand' id='ent_add'>Add</button></div>
+          </div>
+        </div>
+        <div class='table-wrap' style='margin-top:12px;'>
+          <table><thead><tr><th>Entity</th><th>Actions</th></tr></thead><tbody>
+            ${entities.map(e=>`<tr><td>${escapeHtml(e)}</td><td><button class='btn' data-rename='${e}'>Rename</button> <button class='btn warn' data-del='${e}'>Delete</button></td></tr>`).join('')}
+          </tbody></table>
+        </div>`;
+      $('#ent_add').addEventListener('click', ()=>{
+        const v=$('#ent_new').value.trim(); if(!v){ toast('Enter an entity name'); return; }
+        const arr=getEntities(); if(arr.includes(v)){ toast('Entity exists'); return; }
+        arr.push(v); saveEntities(arr); audit('entity:create',{ entity:v }); toast('Entity added'); populateAllEntityDropdowns(); renderPage();
+      });
+      $$('#tableWrap [data-del]').forEach(b=> b.addEventListener('click', ()=>{
+        const name=b.dataset.del; const sops=store.get('sopData', []).filter(s=>s.entity===name).length; const users=getUsers().filter(u=>u.entity===name).length;
+        if(sops||users){ toast(`Cannot delete. In use by ${sops} SOP(s) and ${users} user(s).`); return; }
+        const arr=getEntities().filter(e=>e!==name); saveEntities(arr); audit('entity:delete',{ entity:name }); toast('Entity deleted'); populateAllEntityDropdowns(); renderPage();
+      }));
+      $$('#tableWrap [data-rename]').forEach(b=> b.addEventListener('click', ()=>{
+        const old=b.dataset.rename; const neo=prompt('Rename entity', old)||old; if(!neo||neo===old) return; const arr=getEntities(); if(arr.includes(neo)){ toast('Entity exists'); return; }
+        // Also rewrite references
+        const data=store.get('sopData', []); data.forEach(d=>{ if(d.entity===old) d.entity=neo; }); store.set('sopData', data);
+        const users=getUsers(); users.forEach(u=>{ if(u.entity===old) u.entity=neo; }); saveUsers(users);
+        const newList=arr.map(e=> e===old? neo : e); saveEntities(newList); audit('entity:rename',{ from:old, to:neo }); toast('Entity renamed'); populateAllEntityDropdowns(); renderPage();
+      }));
+    }
+
+    // --- Navigation & Pages ---
+    function bindSearch(){ const input=$('#search'); input.addEventListener('input', ()=>{ state.filter.q=input.value.trim(); render(); }); window.addEventListener('keydown',(e)=>{ if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); input.focus(); }}); $('#statusFilter').addEventListener('change',(e)=>{ state.filter.status=e.target.value; render(); }); $('#deptFilter').addEventListener('change',(e)=>{ state.filter.dept=e.target.value; render(); }); $('#ownerFilter').addEventListener('input',(e)=>{ state.filter.owner=e.target.value; render(); }); $('#tagFilter').addEventListener('input',(e)=>{ state.filter.tags=e.target.value.split(','); render(); }); $('#clearFilters').addEventListener('click',()=>{ state.filter={entity:state.filter.entity,status:'',dept:'',owner:'',tags:[],q:''}; $('#search').value=''; $('#statusFilter').value=''; $('#deptFilter').value=''; $('#ownerFilter').value=''; $('#tagFilter').value=''; render(); }); $('#entityFilter').addEventListener('change',(e)=>{ state.filter.entity=e.target.value; render(); }); }
+    function bindSorting(){ $$('#sopTable thead th[data-sort]').forEach(th=>{ th.addEventListener('click', ()=>{ const key=th.dataset.sort; const curKey=state.sort.key; const dir=(curKey===key && state.sort.dir==='asc')?'desc':'asc'; state.sort={key,dir}; render(); }); }); }
+    function bindNav(){ $$('.nav a').forEach(a=>{ a.addEventListener('click',(e)=>{ e.preventDefault(); if(a.id==='adminLink' && a.style.display==='none') return; $$('.nav a').forEach(x=>x.classList.remove('active')); a.classList.add('active'); state.page=a.dataset.page; renderPage(); }); }); }
+
+    function renderPage(){
+      if(state.page==='sops'){ $('#tableWrap').style.display='block'; $('#filters').style.display='flex'; $('#emptyState').hidden=true; render(); return; }
+      $('#filters').style.display='none'; const main=$('#tableWrap'); const runs=store.get('sopRuns', []); const audits=store.get('sopAudit', []);
+      if(state.page==='runs'){
+        const u=currentUser(); const rows=(u?.role==='Admin')?runs:runs.filter(r=>r.entity===u?.entity);
+        main.innerHTML = `<div class='card'><h3>Recent Runs</h3>${rows.length? rows.map(r=>`✅ <b>${escapeHtml(r.sopId)}</b> — ${escapeHtml(r.title)} by ${escapeHtml(r.operator)} at ${fmtDate(r.time)} (${escapeHtml(r.location||'—')}) [${escapeHtml(r.entity)}]`).join('<br/>') : 'No runs yet.'}</div>`;
+      } else if(state.page==='training'){
+        const data=store.get('sopData', []); main.innerHTML = `<div class='card'><h3>Training Matrix (roles → SOPs)</h3>${data.map(d=>`• <b>${escapeHtml(d.title)}</b> — roles: ${(d.trainingRoles||[]).join(', ')||'—'} [${escapeHtml(d.entity)}]`).join('<br/>')}</div>`;
+      } else if(state.page==='audits'){
+        const u=currentUser(); const list = (u?.role==='Admin')? audits : audits.filter(a=> (a.detail?.entity ? a.detail.entity===u?.entity : true) );
+        main.innerHTML = `<div class='card'><h3>Audit Log</h3>${list.length? list.slice(-200).reverse().map(a=>`<div>🕒 ${fmtDate(a.time)} — <b>${escapeHtml(a.event)}</b> — ${escapeHtml(JSON.stringify(a.detail))}</div>`).join('') : 'No audit entries'}</div>`;
+      } else if(state.page==='templates'){
+        main.innerHTML = `<div class='empty'>Templates coming soon. Duplicate an SOP as a starting point.</div>`;
+      } else if(state.page==='settings'){
+        main.innerHTML = `<div class='card'><h3>Settings</h3>
+          <div style='display:grid;gap:10px;max-width:620px;'>
+            <label>Theme <button class='btn' onclick='toggleTheme()'>Toggle</button></label>
+            <div>Data lives in your browser (localStorage). Use Export CSV/JSON for backups.</div>
+            <div>
+              <button class='btn' id='exportJson'>Export JSON</button>
+              <label class='btn' for='importJson'>Import JSON</label>
+              <input type='file' id='importJson' accept='application/json' style='display:none;'/>
+            </div>
+            <div><button class='btn warn' id='resetData'>Reset sample data</button></div>
+          </div>
+        </div>`;
+        $('#exportJson').addEventListener('click', ()=> download(JSON.stringify(store.get('sopData', []), null, 2), `sops-${today()}.json`, 'application/json'));
+        $('#importJson').addEventListener('change', (e)=>{ const f=e.target.files?.[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ const d=JSON.parse(r.result); if(Array.isArray(d)){ store.set('sopData', d); toast('JSON imported'); render(); } else toast('Invalid JSON'); }catch{ toast('Invalid JSON'); } }; r.readAsText(f); });
+        $('#resetData').addEventListener('click', ()=>{ localStorage.removeItem('sopData'); localStorage.removeItem('sopRuns'); localStorage.removeItem('sopAudit'); seedSops(); toast('Sample data restored'); renderPage(); });
+      } else if(state.page==='admin'){
+        const u=currentUser(); if(u?.role!=='Admin'){ main.innerHTML = `<div class='empty'>Admins only</div>`; return; }
+        const data=store.get('sopData', []); const ids=data.map(d=>d.id);
+        const tabs=`<div class='toolbar' style='margin-bottom:12px;'><button class='btn ${state.adminTab==='manage'?'brand':''}' id='tabManage'>Manage SOPs</button><button class='btn ${state.adminTab==='records'?'brand':''}' id='tabRecords'>Records</button><button class='btn ${state.adminTab==='users'?'brand':''}' id='tabUsers'>Users</button><button class='btn ${state.adminTab==='entities'?'brand':''}' id='tabEntities'>Entities</button></div>`;
+        if(state.adminTab==='manage'){
+          main.innerHTML = tabs + `<div class='table-wrap'><table><thead><tr><th>SOP ID</th><th>Title</th><th>Entity</th><th>Status</th><th>Owner</th><th>Version</th><th>Actions</th></tr></thead><tbody>
+            ${data.map(d=>`<tr><td>${escapeHtml(d.id)}</td><td>${escapeHtml(d.title)}</td><td>${escapeHtml(d.entity)}</td><td>${escapeHtml(d.status)}</td><td>${escapeHtml(d.owner)}</td><td>${escapeHtml(d.version)}</td><td><button class='btn' data-edit='${d.id}'>Edit</button> <button class='btn warn' data-delete='${d.id}'>Delete</button></td></tr>`).join('')}
+          </tbody></table></div>`;
+          $$('#tableWrap [data-edit]').forEach(b=> b.addEventListener('click', ()=> openEdit(data.find(x=>x.id===b.dataset.edit))));
+          $$('#tableWrap [data-delete]').forEach(b=> b.addEventListener('click', ()=> deleteSop(b.dataset.delete)));
+        } else if(state.adminTab==='records'){
+          const audits2=store.get('sopAudit', []); const selected=state.recordsFilterId||''; const userFilter=state.recordsFilterUser||''; const entFilter=state.recordsFilterEntity||'';
+          const rows=audits2.filter(a=>{ const sid=a.detail?.sopId||a.detail?.id||''; const user=(a.detail?.user||a.detail?.changedBy||a.detail?.operator||'').toLowerCase(); const ent=a.detail?.entity||''; const okId=!selected||sid===selected; const okUser=!userFilter||user.includes(userFilter.toLowerCase()); const okEnt=!entFilter||ent===entFilter; return okId && okUser && okEnt; }).slice(-500).reverse();
+          const entities = getEntities();
+          main.innerHTML = tabs + `<div class='card'>
+            <div class='filters' style='margin-bottom:12px;'>
+              <span class='chip'>SOP ID: <select id='recSopId'><option value=''>All</option>${ids.map(id=>`<option ${selected===id?'selected':''}>${id}</option>`).join('')}</select></span>
+              <span class='chip'>User: <input id='recUser' placeholder='filter by user' value='${escapeHtml(userFilter)}' /></span>
+              <span class='chip'>Entity: <select id='recEntity'><option value=''>All</option>${entities.map(e=>`<option ${entFilter===e?'selected':''}>${e}</option>`).join('')}</select></span>
+              <span class='chip'>Count: ${rows.length}</span>
+            </div>
+            <div class='table-wrap'><table><thead><tr><th>Date/Time</th><th>Event</th><th>SOP ID</th><th>User</th><th>Entity</th><th>Detail</th></tr></thead><tbody>
+              ${rows.map(r=>{ const sid=r.detail?.sopId||r.detail?.id||'—'; const user=r.detail?.user||r.detail?.changedBy||r.detail?.operator||'—'; const ent=r.detail?.entity||'—'; return `<tr><td>${fmtDate(r.time)}</td><td>${escapeHtml(r.event)}</td><td>${escapeHtml(sid)}</td><td>${escapeHtml(user)}</td><td>${escapeHtml(ent)}</td><td><code>${escapeHtml(JSON.stringify(r.detail))}</code></td></tr>`; }).join('')}
+            </tbody></table></div>
+          </div>`;
+          $('#recSopId').addEventListener('change', e=>{ state.recordsFilterId=e.target.value; renderPage(); });
+          $('#recUser').addEventListener('input', e=>{ state.recordsFilterUser=e.target.value; renderPage(); });
+          $('#recEntity').addEventListener('change', e=>{ state.recordsFilterEntity=e.target.value; renderPage(); });
+        } else if(state.adminTab==='users'){
+          main.innerHTML = tabs + `<div id='usersAdmin'></div>`; renderUsersAdmin($('#usersAdmin'));
+        } else if(state.adminTab==='entities'){
+          main.innerHTML = tabs + `<div id='entitiesAdmin'></div>`; renderEntitiesAdmin($('#entitiesAdmin'));
+        }
+        $('#tabManage').addEventListener('click', ()=>{ state.adminTab='manage'; renderPage(); });
+        $('#tabRecords').addEventListener('click', ()=>{ state.adminTab='records'; renderPage(); });
+        $('#tabUsers').addEventListener('click', ()=>{ state.adminTab='users'; renderPage(); });
+        $('#tabEntities').addEventListener('click', ()=>{ state.adminTab='entities'; renderPage(); });
+      }
+      $('#tableWrap').style.display='block';
+    }
+
+    // --- Delete SOP ---
+    function deleteSop(id){ if(!confirm(`Delete ${id}? This cannot be undone.`)) return; const data=store.get('sopData', []); const idx=data.findIndex(x=>x.id===id); if(idx===-1){ toast('Not found'); return; } const u=currentUser(); const [removed]=data.splice(idx,1); store.set('sopData', data); audit('sop:delete',{ sopId:id, title:removed?.title, user: u?.username||'—', entity: removed?.entity }); toast(`${id} deleted`); renderPage(); }
+
+    // --- Event bindings ---
+    function bindEvents(){
+      // Header
+      $('#newSopBtn').addEventListener('click', ()=>openEdit());
+      $('#printBtn').addEventListener('click', printView);
+      $('#exportCsvBtn').addEventListener('click', exportCsv);
+      $('#aiBtn').addEventListener('click', ()=> $('#aiModal').classList.add('active'));
+      $('#themeBtn').addEventListener('click', toggleTheme);
+      $('#logoutBtn').addEventListener('click', logout);
+      $('#refreshBtn').addEventListener('click', ()=>{ renderPage(); toast('Refreshed'); });
+
+      // Detail
+      $('#editBtn').addEventListener('click', ()=> openEdit(state.current));
+      $('#closeDetail').addEventListener('click', closeDetail);
+      $('#cloneBtn').addEventListener('click', cloneVersion);
+      $('#runBtn').addEventListener('click', ()=> startRun(state.current?.id));
+      $('#printSopBtn').addEventListener('click', printSop);
+      $('#detailOver').addEventListener('click', (e)=>{ if(e.target.classList.contains('backdrop')) closeDetail(); });
+
+      // Forms
+      $('#sopForm').addEventListener('submit', saveEdit);
+      $('#closeEdit').addEventListener('click', ()=> $('#editModal').classList.remove('active'));
+      $('#runForm').addEventListener('submit', completeRun);
+      $('#closeRun').addEventListener('click', ()=> $('#runModal').classList.remove('active'));
+      $('#aiGenerate').addEventListener('click', ()=>{ const prompt=$('#aiPrompt').value.trim(); if(!prompt){ toast('Describe the procedure'); return; } const steps=aiDraftFromPrompt(prompt); $('#aiOutput').innerHTML = `<b>Suggested steps:</b><br/>` + steps.map((s,i)=>`${i+1}. ${escapeHtml(s)}`).join('<br/>'); });
+      $('#aiDraftBtn').addEventListener('click', ()=>{ const title=$('#f_title').value||'the procedure'; const steps=aiDraftFromPrompt(title); $('#f_steps').value=steps.map((s,i)=>`${i+1}. ${s}`).join('\n'); toast('Draft inserted'); });
+
+      // Auth
+      $('#lg_submit').addEventListener('click', login);
+    }
+
+    // --- Init & auth gate ---
+    function init(){ seedEntities(); seedUsers(); seedSops(); bindEvents(); bindSorting(); bindSearch(); bindNav(); initAuthGate(); }
+    function initAuthGate(){ if(!currentUser()){ showAuth(); } else { initAppForUser(); } }
+    function initAppForUser(){ hideAuth(); updateUserPill(); populateAllEntityDropdowns(); const u=currentUser(); if(u && u.role!=='Admin'){ state.filter.entity=u.entity; } renderPage(); $('#app').style.visibility='visible'; }
+
+    init();
+  </script>
+</body>
+</html>
