@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-<title>SmartProdLine365 – Ingredient System (v11)</title>
+<title>SmartProdLine365 – Ingredient System (Multi-Entity)</title>
 <style>
 :root{
   --green:#00b33c;--green-dark:#007a33;--red:#cc0000;--amber:#f59e0b;
@@ -12,29 +12,21 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:#fff;min-height:100vh}
 .container{max-width:1400px;margin:0 auto;padding:16px}
-
-/* inputs & buttons */
 .input,select{width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;font-size:15px;background:#fff}
 .btn{border:0;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer}
 .btn-primary{background:var(--green);color:#fff}
 .btn-success{background:var(--green-dark);color:#fff}
 .btn-danger{background:var(--red);color:#fff}
 .btn-warning{background:var(--amber);color:#fff}
-
-/* tabs & panels */
 .tabs{display:flex;gap:8px;margin:14px 0;flex-wrap:wrap}
 .tab{flex:1 1 150px;text-align:center;background:#1f2937;color:#cbd5e1;padding:10px;border-radius:10px 10px 0 0;cursor:pointer;font-weight:700}
 .tab.active{background:var(--green);color:#fff}
 .panel{display:none;background:#f9fafb;color:#111;border-radius:0 0 12px 12px;padding:18px}
 .panel.active{display:block}
-
-/* cards & lists */
 .request-card{background:#fff;border-left:5px solid var(--green);border-radius:10px;padding:14px;margin:10px 0;color:#111}
 .request-card.completed{opacity:.85;border-left-color:#0a7a3a}
 .priority-badge{padding:4px 10px;border-radius:20px;color:#fff;font-weight:800;font-size:12px}
 .priority-high{background:#e11d48}.priority-medium{background:#f59e0b}.priority-low{background:#10b981}
-
-/* KPI */
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:10px 0 18px}
 .kpi{color:#fff;border-radius:14px;padding:20px;box-shadow:0 16px 40px rgba(0,0,0,.18)}
 .kpi h3{margin-bottom:8px;font-size:13px;opacity:.95}
@@ -44,28 +36,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-s
 .kpi-orange{background:linear-gradient(135deg,#f59e0b,#f97316)}
 .kpi-red{background:linear-gradient(135deg,#ef4444,#f43f5e)}
 .kpi-gray{background:linear-gradient(135deg,#6b7280,#374151)}
-
-/* Admin availability board */
 .board{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:16px}
 .board-col{background:#fff;border-radius:12px;padding:12px}
 .usercard{border-radius:10px;padding:10px;margin:8px 0;color:#fff;font-weight:700;text-align:center}
-.user-av{background:#16a34a}
-.user-lu{background:#facc15;color:#111}
-.user-br{background:#9ca3af}
-.user-off{background:#ef4444}
-
+.user-av{background:#16a34a}.user-lu{background:#facc15;color:#111}.user-br{background:#9ca3af}.user-off{background:#ef4444}
 .alert{background:#d1fae5;color:#065f46;border-left:4px solid #10b981;border-radius:8px;padding:10px;margin-top:10px}
 .empty{color:#6b7280;text-align:center;padding:26px}
-
-/* tables */
 .table{width:100%;background:#fff;color:#111;border-radius:10px;border-collapse:separate;border-spacing:0;overflow:hidden}
 .table th,.table td{padding:10px;border-bottom:1px solid #e5e7eb}
 .table th{background:#f3f4f6;text-align:left}
-
-/* topbar */
 .topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-
-/* admin auto-offline highlight */
 .tr-auto-off{background:#fee2e2;}
 </style>
 </head>
@@ -77,8 +57,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-s
   <label>Entity / Company</label>
   <select id="loginEntity" class="input">
     <option value="TFNW">TFNW</option>
-    <option value="TFK">TFK</option>
-    <option value="TFE">TFE</option>
+    <option value="TFSW">TFSW</option>
+    <option value="TFTX">TFTX</option>
+    <option value="TFPI">TFPI</option>
+    <option value="TFTN">TFTN</option>
+    <option value="TFIL">TFIL</option>
+    <option value="TFNE">TFNE</option>
+    <option value="TFNJ">TFNJ</option>
   </select>
   <label>Username</label><input id="loginUser" class="input" autocomplete="username">
   <label>Password</label><input id="loginPass" class="input" type="password" autocomplete="current-password">
@@ -86,22 +71,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-s
   <div id="loginMsg" style="color:#b91c1c;margin-top:10px"></div>
 </div>
 
-
 <!-- APP -->
 <div id="app" style="display:none">
   <div class="container">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <div>
-        <h1> SmartProdLine365 – Ingredient System</h1>
+        <h1>SmartProdLine365 – Ingredient System</h1>
         <div id="welcome" style="opacity:.85"></div>
       </div>
       <div class="topbar">
-        <!-- Availability dropdown for NON-ADMIN only -->
         <select id="availabilitySelect" class="input" style="width:auto;min-width:160px;display:none">
-          <option>Available</option>
-          <option>Lunch</option>
-          <option>Break</option>
-          <option>Offline</option>
+          <option>Available</option><option>Lunch</option><option>Break</option><option>Offline</option>
         </select>
         <button class="btn btn-success" onclick="softRefresh()">🔄 Soft Refresh</button>
         <button class="btn btn-danger" onclick="logout()">Logout</button>
@@ -120,7 +100,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-s
         <label>UOM</label>
         <select id="uom" class="input"><option>Lbs</option><option>Eaches</option><option>Cases</option></select>
         <label>Line</label>
-        <select id="line" class="input"><option>Line08</option><option>Line09</option><option>Line10</option><option>Line11</option><option>Line12</option><option>Line13</option><option>Line14</option><option>Line15</option><option>Line16</option><option>Line17</option><option>Line18</option><option>Line19</option><option>Line20</option><option>Line21</option><option>Line22</option><option>Line23</option><option>Hot-Kitchen</option><option>Deli</option><option>Protien-Prep</option><option>Tables</option></select>
+        <select id="line" class="input">
+          <option>Line08</option><option>Line09</option><option>Line10</option><option>Line11</option><option>Line12</option>
+          <option>Line13</option><option>Line14</option><option>Line15</option><option>Line16</option><option>Line17</option>
+          <option>Line18</option><option>Line19</option><option>Line20</option><option>Line21</option><option>Line22</option>
+          <option>Line23</option><option>Hot-Kitchen</option><option>Deli</option><option>Protien-Prep</option><option>Tables</option>
+        </select>
         <label>Priority</label>
         <select id="priority" class="input"><option>High</option><option>Medium</option><option>Low</option></select>
         <label>Area Requested</label>
@@ -132,15 +117,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-s
     </div>
 
     <!-- Picking -->
-    <div id="panel-picking" class="panel">
-      <h2>📦 Picking Interface</h2>
-      <div id="pickList"></div>
-    </div>
+    <div id="panel-picking" class="panel"><h2>📦 Picking Interface</h2><div id="pickList"></div></div>
 
-    <!-- KPI (summary + details + summary by picker) -->
+    <!-- KPI -->
     <div id="panel-kpi" class="panel">
       <h2>📊 Performance Dashboard</h2>
-
       <div class="kpi-grid">
         <div class="kpi kpi-purple"><h3>Total Requests</h3><div class="val" id="kpiTotal">0</div></div>
         <div class="kpi kpi-green"><h3>Completed</h3><div class="val" id="kpiCompleted">0</div></div>
@@ -148,170 +129,109 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-s
         <div class="kpi kpi-red"><h3>Avg Pick Time</h3><div class="val" id="kpiAvg">--</div></div>
         <div class="kpi kpi-gray"><h3>Deleted</h3><div class="val" id="kpiDeleted">0</div></div>
       </div>
-
       <div style="background:#fff;border-radius:12px;padding:14px;margin-top:10px">
-        <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap">
-          <h3 style="margin:4px 0;color:#111">Request History</h3>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <div>
-              <label style="font-size:12px;color:#6b7280">Filter by Date</label>
-              <input type="date" id="kpiDate" class="input" style="width:auto;min-width:180px">
-            </div>
-            <div>
-              <label style="font-size:12px;color:#6b7280">Filter by Picker</label>
-              <select id="kpiPicker" class="input" style="width:auto;min-width:180px">
-                <option value="">All Pickers</option>
-              </select>
-            </div>
-            <button class="btn btn-success" id="kpiApply">Apply</button>
-            <button class="btn btn-warning" id="kpiReset">Reset</button>
-          </div>
-        </div>
-
-        <input type="text" id="kpiSearch" class="input" placeholder="🔎 Search history… (REQ, FG, ING)" style="margin-top:10px">
-
+        <h3 style="margin:4px 0;color:#111">Request History</h3>
+        <input type="text" id="kpiSearch" class="input" placeholder="🔎 Search history…">
         <div id="kpiHistory" style="margin-top:14px"></div>
-      </div>
-
-      <div style="background:#fff;border-radius:12px;padding:14px;margin-top:14px">
-        <h3 style="margin:4px 0;color:#111">Summary by Picker</h3>
-        <div id="kpiByPicker"></div>
       </div>
     </div>
 
     <!-- Admin -->
     <div id="panel-admin" class="panel">
       <h2>⚙️ Admin</h2>
-      <div style="margin:10px 0">
-        <h3>Add User</h3>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
-  <input id="newUser" class="input" placeholder="Username">
-  <input id="newPass" class="input" placeholder="Password">
-  <select id="newRole" class="input">
-    <option>Requester</option><option>Picker</option><option>Viewer</option><option>Admin</option>
-  </select>
-  <select id="newArea" class="input">
-    <option>Deli</option><option>WIP</option><option>Packaging</option><option>Produce</option><option>All</option>
-  </select>
-  <select id="newEntity" class="input">
-    <option>TFNW</option><option>TFK</option><option>TFE</option><option>All</option>
-  </select>
-  <button class="btn btn-primary" onclick="addUser()">Add</button>
-</div>
-
-
-      <h3 style="margin-top:16px">Users</h3>
-      <div id="adminUsers"></div>
-
-      <h3 style="margin-top:20px">👥 Picker Availability Board</h3>
-      <div id="availabilityBoard" class="board"></div>
+      <h3>Add User</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+        <input id="newUser" class="input" placeholder="Username">
+        <input id="newPass" class="input" placeholder="Password">
+        <select id="newRole" class="input"><option>Requester</option><option>Picker</option><option>Viewer</option><option>Admin</option></select>
+        <select id="newArea" class="input"><option>Deli</option><option>WIP</option><option>Packaging</option><option>Produce</option><option>All</option></select>
+        <button class="btn btn-primary" onclick="addUser()">Add</button>
+      </div>
+      <h3 style="margin-top:16px">Users</h3><div id="adminUsers"></div>
+      <h3 style="margin-top:20px">👥 Picker Availability Board</h3><div id="availabilityBoard" class="board"></div>
     </div>
   </div>
 </div>
 
 <script>
-/* --------------------
-   STORAGE + DEFAULTS
----------------------*/
-function ensureAdmin(){
-  let users=JSON.parse(localStorage.getItem('users'))||[];
+/* ---------- STORAGE KEY BY ENTITY ---------- */
+function key(name){
+  const entity = localStorage.getItem('currentEntity') || 'TFNW';
+  return `SmartProdLine365_${entity}_${name}`;
+}
+
+/* ---------- LOGIN ---------- */
+function ensureAdmin(entity){
+  let users = JSON.parse(localStorage.getItem(`SmartProdLine365_${entity}_users`)) || [];
   if(!users.find(u=>u.username==='admin')){
-    users.push({username:'admin',password:'admin123',role:'Admin',area:'All',status:'Offline'});
-    localStorage.setItem('users',JSON.stringify(users));
+    users.push({username:'admin',password:'admin123',role:'Admin',area:'All',entity,status:'Offline'});
+    localStorage.setItem(`SmartProdLine365_${entity}_users`,JSON.stringify(users));
   }
 }
-ensureAdmin();
 
-let requests=JSON.parse(localStorage.getItem('ingredientRequests'))||[];
-let deletedRequests=JSON.parse(localStorage.getItem('deletedRequests'))||[];
-
-/* --------------------
-        HELPERS
----------------------*/
-function formatLocal(iso){ if(!iso) return '—'; const d=new Date(iso); return isNaN(d)?'—':d.toLocaleString(); }
-const TWO_HOURS = 2*60*60*1000;
-
-/* --------------------
-        LOGIN
----------------------*/
 function login(){
-  const entity=document.getElementById('loginEntity').value;
-  const u=document.getElementById('loginUser').value.trim();
-  const p=document.getElementById('loginPass').value.trim();
-  const msg=document.getElementById('loginMsg');
-  msg.textContent='';
+  const entity = document.getElementById('loginEntity').value;
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value.trim();
+  const msg = document.getElementById('loginMsg'); msg.textContent='';
 
-  // Load users for that entity
-  let users=JSON.parse(localStorage.getItem('SmartProdLine365_'+entity+'_users'))||[];
+  ensureAdmin(entity);
+  let users = JSON.parse(localStorage.getItem(`SmartProdLine365_${entity}_users`)) || [];
+  const user = users.find(x=>x.username===u && x.password===p);
+  if(!user){msg.textContent='❌ Invalid username or password';return;}
 
-  // Ensure admin exists for each entity
-  if(!users.find(x=>x.username==='admin')){
-    users.push({username:'admin',password:'admin123',role:'Admin',area:'All',entity:entity,status:'Offline'});
-    localStorage.setItem('SmartProdLine365_'+entity+'_users',JSON.stringify(users));
-  }
-
-  const user=users.find(x=>x.username===u && x.password===p);
-  if(!user){ msg.textContent='❌ Invalid username or password'; return; }
-
-  user.status='Available';
-  user.lastLogin=new Date().toISOString();
-  localStorage.setItem('SmartProdLine365_'+entity+'_users',JSON.stringify(users));
+  user.status='Available'; user.lastLogin=new Date().toISOString();
+  localStorage.setItem(`SmartProdLine365_${entity}_users`,JSON.stringify(users));
   localStorage.setItem('currentUser',JSON.stringify(user));
-  localStorage.setItem('currentEntity',entity); // store active entity
+  localStorage.setItem('currentEntity',entity);
   boot();
-}
-
 }
 document.getElementById('loginBtn').onclick=login;
 
 function logout(){
   const me=JSON.parse(localStorage.getItem('currentUser')||'null');
-  if(me){
-    let users=JSON.parse(localStorage.getItem('users'))||[];
+  const entity=localStorage.getItem('currentEntity');
+  if(me && entity){
+    let users=JSON.parse(localStorage.getItem(`SmartProdLine365_${entity}_users`))||[];
     const u=users.find(x=>x.username===me.username);
     if(u){u.status='Offline';u.lastLogout=new Date().toISOString();}
-    localStorage.setItem('users',JSON.stringify(users));
+    localStorage.setItem(`SmartProdLine365_${entity}_users`,JSON.stringify(users));
   }
   localStorage.removeItem('currentUser');
+  localStorage.removeItem('currentEntity');
   document.getElementById('login').style.display='block';
   document.getElementById('app').style.display='none';
 }
 
-/* --------------------
-        BOOT + TABS
----------------------*/
+/* ---------- AUTO LOGOUT (2 MIN) ---------- */
+let inactivityTimer;
+const AUTO_LOGOUT_MS=2*60*1000;
+function resetInactivityTimer(){
+  clearTimeout(inactivityTimer);
+  inactivityTimer=setTimeout(()=>{
+    const me=JSON.parse(localStorage.getItem('currentUser')||'null');
+    if(me){alert('⏰ Auto-logout after 2 min inactivity');logout();}
+  },AUTO_LOGOUT_MS);
+}
+['mousemove','keydown','click','scroll','touchstart'].forEach(e=>window.addEventListener(e,resetInactivityTimer,false));
+
+/* ---------- BOOT ---------- */
 function boot(){
-  const me=JSON.parse(localStorage.getItem('currentUser'));
-  if(!me)return;
+  const me=JSON.parse(localStorage.getItem('currentUser')); if(!me)return;
   document.getElementById('login').style.display='none';
   document.getElementById('app').style.display='block';
-  document.getElementById('welcome').textContent=`${me.username} (${me.role}) – ${me.area}`;
-  const availSel=document.getElementById('availabilitySelect');
-
-  if(me.role==='Admin'){ availSel.style.display='none'; }
-  else {
-    availSel.style.display='inline-block';
-    const users=JSON.parse(localStorage.getItem('users'))||[];
-    const self=users.find(u=>u.username===me.username);
-    availSel.value=(self&&self.status)?self.status:'Available';
-    availSel.onchange=function(){
-      let users=JSON.parse(localStorage.getItem('users'))||[];
-      const u=users.find(x=>x.username===me.username);
-      if(u){u.status=availSel.value;localStorage.setItem('users',JSON.stringify(users));renderAvailability();}
-    };
-  }
-
+  document.getElementById('welcome').textContent=`${me.username} (${me.role}) – ${me.area} – Company: ${me.entity}`;
+  resetInactivityTimer();
   buildTabs(me.role);
-  document.getElementById('userRequested').value=me.username;
-  renderPicking(); renderKPI(); renderAdmin(); renderAvailability();
-  initKpiControlsOnce();           // wire KPI filters once
 }
+
+/* ---------- TABS ---------- */
 function buildTabs(role){
   const t=[];
-  if(role==='Admin') t.push(['admin','Admin']);
-  if(['Admin','Requester'].includes(role)) t.push(['request','Request']);
-  if(['Picker'].includes(role)) t.push(['picking','Picking']);   // Admin cannot pick
-  if(['Admin','Viewer','Requester','Picker'].includes(role)) t.push(['kpi','KPI']);
+  if(role==='Admin')t.push(['admin','Admin']);
+  if(['Admin','Requester'].includes(role))t.push(['request','Request']);
+  if(['Picker'].includes(role))t.push(['picking','Picking']);
+  if(['Admin','Viewer','Requester','Picker'].includes(role))t.push(['kpi','KPI']);
   document.getElementById('tabs').innerHTML=t.map(x=>`<div class="tab" id="tab-${x[0]}" onclick="showPanel('${x[0]}')">${x[1]}</div>`).join('');
   showPanel(t[0][0]);
 }
@@ -325,394 +245,113 @@ function showPanel(id){
   if(id==='admin'){renderAdmin();renderAvailability();}
 }
 
-/* --------------------
-     REQUEST CREATE
----------------------*/
+/* ---------- REQUESTS ---------- */
 function generateCode(){return'REQ-'+Date.now();}
-function autoAssign(r){
-  const users=JSON.parse(localStorage.getItem('users'))||[];
-  const available=users.filter(u=>u.role==='Picker'&&(u.area===r.area||u.area==='All')&&u.status==='Available');
-  r.assignedTo=available.length?available[Math.floor(Math.random()*available.length)].username:null;
-  return r;
-}
 function submitRequest(e){
   e.preventDefault();
   const me=JSON.parse(localStorage.getItem('currentUser'));
-  let r={
-    uniqueCode:generateCode(),
-    fgItemId:fgItemId.value.trim(),
-    ingredientItemId:ingredientItemId.value.trim(),
-    quantity:quantity.value,
-    uom:uom.value,
-    line:line.value,
-    priority:priority.value,
-    area:area.value,
-    userRequested:me.username,
-    requestedTime:new Date().toISOString(),
-    status:'pending'
-  };
-  r=autoAssign(r);
+  let requests=JSON.parse(localStorage.getItem(key('requests')))||[];
+  let r={uniqueCode:generateCode(),fgItemId:fgItemId.value.trim(),ingredientItemId:ingredientItemId.value.trim(),
+         quantity:quantity.value,uom:uom.value,line:line.value,priority:priority.value,area:area.value,
+         userRequested:me.username,entity:me.entity,requestedTime:new Date().toISOString(),status:'pending'};
   requests.push(r);
-  localStorage.setItem('ingredientRequests',JSON.stringify(requests));
-  reqForm.reset();
-  document.getElementById('reqOK').style.display='block';
+  localStorage.setItem(key('requests'),JSON.stringify(requests));
+  reqForm.reset();document.getElementById('reqOK').style.display='block';
   setTimeout(()=>document.getElementById('reqOK').style.display='none',1500);
-  renderPicking(); renderKPI();
+  renderPicking();renderKPI();
 }
 
-/* --------------------
-     PICKING LOGIC
----------------------*/
+/* ---------- PICKING ---------- */
 function renderPicking(){
   const me=JSON.parse(localStorage.getItem('currentUser'));
-  requests=JSON.parse(localStorage.getItem('ingredientRequests'))||[];
+  let requests=JSON.parse(localStorage.getItem(key('requests')))||[];
   let list=requests;
-  if(me.role==='Picker'&&me.area!=='All'){ list=list.filter(r=>r.area===me.area); }
-  if(!list.length){ pickList.innerHTML=`<div class="empty">📭 No Requests</div>`; return; }
-
+  if(me.entity!=='All')list=list.filter(r=>r.entity===me.entity);
+  if(!list.length){pickList.innerHTML=`<div class="empty">📭 No Requests</div>`;return;}
   pickList.innerHTML=list.map(r=>{
     const done=r.status==='completed';
     let actions='';
-    if(done){
-      actions=`<span>✅ Completed</span>`;
-    }else if(r.status==='pending'){
-      actions=`<button class="btn btn-primary" onclick="startPick('${r.uniqueCode}')">Start</button>
-               <button class="btn btn-danger" onclick="deleteReq('${r.uniqueCode}')">Delete</button>`;
-    }else if(r.status==='inProgress'){
-      actions=`<button class="btn btn-success" onclick="completePick('${r.uniqueCode}')">Complete</button>
-               <button class="btn btn-warning" onclick="cancelPick('${r.uniqueCode}')">Cancel</button>`;
-    }
-
-    // WIP-only forwarding (always available if not completed)
-    let forward='';
-    if(!done){
-      if(me&&me.role!=='Admin'&&me.area==='WIP'){
-        forward=`<div style="margin-top:8px;display:flex;gap:8px;align-items:center">
-          <select id="fwd_${r.uniqueCode}" class="input" style="max-width:170px">
-            <option value="">Forward →</option>
-            <option>Deli</option><option>Packaging</option><option>Produce</option>
-          </select>
-          <button class="btn btn-warning" onclick="forwardRequest('${r.uniqueCode}')">Go</button>
-        </div>`;
-      }
-    }
-
-    const pr = `<span class="priority-badge priority-${r.priority.toLowerCase()}">${r.priority}</span>`;
-    const t  = r.requestedTime?new Date(r.requestedTime).toLocaleString():'';
-
+    if(done){actions=`✅ Completed`;}
+    else if(r.status==='pending'){actions=`<button class="btn btn-primary" onclick="startPick('${r.uniqueCode}')">Start</button>`;}
+    else if(r.status==='inProgress'){actions=`<button class="btn btn-success" onclick="completePick('${r.uniqueCode}')">Complete</button>`;}
+    const pr=`<span class="priority-badge priority-${r.priority.toLowerCase()}">${r.priority}</span>`;
     return `<div class="request-card ${done?'completed':''}">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div><b>${r.uniqueCode}</b> ${pr}</div>
-        <div>Area: <b>${r.area}</b> • Line: <b>${r.line}</b></div>
-      </div>
-      <div style="margin-top:6px">FG: <b>${r.fgItemId}</b> • ING: <b>${r.ingredientItemId}</b></div>
-      <div>Qty: <b>${r.quantity} ${r.uom}</b> • Status: <b>${r.status}</b> • Assigned: <b>${r.assignedTo||'—'}</b></div>
-      <div style="font-size:12px;color:#6b7280">Requested: ${t}</div>
-      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">${actions}</div>
-      ${forward}
-    </div>`;
+      <b>${r.uniqueCode}</b> ${pr}<br>FG: ${r.fgItemId} – ING: ${r.ingredientItemId}<br>
+      Qty: ${r.quantity} ${r.uom} • Line: ${r.line}<br>Status: ${r.status}<br>${actions}</div>`;
   }).join('');
 }
+function startPick(code){let reqs=JSON.parse(localStorage.getItem(key('requests')))||[];
+  const r=reqs.find(x=>x.uniqueCode===code);if(!r)return;
+  r.status='inProgress';r.pickStartTime=new Date().toISOString();
+  localStorage.setItem(key('requests'),JSON.stringify(reqs));renderPicking();renderKPI();}
+function completePick(code){let reqs=JSON.parse(localStorage.getItem(key('requests')))||[];
+  const r=reqs.find(x=>x.uniqueCode===code);if(!r)return;
+  r.status='completed';r.completedTime=new Date().toISOString();
+  if(r.pickStartTime){r.pickDuration=Math.round((new Date(r.completedTime)-new Date(r.pickStartTime))/60000);}
+  localStorage.setItem(key('requests'),JSON.stringify(reqs));renderPicking();renderKPI();}
 
-function startPick(code){
-  const r=requests.find(x=>x.uniqueCode===code); if(!r)return;
-  r.status='inProgress'; r.pickStartTime=new Date().toISOString();
-  const me=JSON.parse(localStorage.getItem('currentUser')); r.assignedTo=me.username;
-  saveAndRefresh();
-}
-function completePick(code){
-  const r=requests.find(x=>x.uniqueCode===code); if(!r)return;
-  r.status='completed'; r.completedTime=new Date().toISOString();
-  if(r.pickStartTime){ r.pickDuration=Math.max(0,Math.round((new Date(r.completedTime)-new Date(r.pickStartTime))/60000)); }
-  saveAndRefresh();
-}
-function cancelPick(code){
-  const r=requests.find(x=>x.uniqueCode===code); if(!r)return;
-  r.status='pending'; r.assignedTo=null;
-  delete r.pickStartTime; delete r.completedTime; delete r.pickDuration;
-  saveAndRefresh();
-}
-function deleteReq(code){
-  if(!confirm('Delete this request?'))return;
-  const r=requests.find(x=>x.uniqueCode===code);
-  if(r){ deletedRequests.push({...r,deletedTime:new Date().toISOString(),status:'deleted'}); }
-  requests=requests.filter(x=>x.uniqueCode!==code);
-  saveAndRefresh();
-}
-function forwardRequest(code){
-  const r=requests.find(x=>x.uniqueCode===code); if(!r||r.status==='completed')return;
-  const sel=document.getElementById('fwd_'+code); if(!sel||!sel.value)return;
-  r.area=sel.value; r.status='pending'; r.assignedTo=null;
-  delete r.pickStartTime; delete r.completedTime; delete r.pickDuration;
-  autoAssign(r); saveAndRefresh(); alert('Forwarded to '+r.area);
-}
-function saveAndRefresh(){
-  localStorage.setItem('ingredientRequests',JSON.stringify(requests));
-  localStorage.setItem('deletedRequests',JSON.stringify(deletedRequests));
-  renderPicking(); renderKPI();
-}
-
-/* --------------------
-          KPI (v11)
----------------------*/
-function getFilteredRequests(){
-  const q=(document.getElementById('kpiSearch')?.value||'').toLowerCase();
-  const day=document.getElementById('kpiDate')?.value||'';
-  const picker=document.getElementById('kpiPicker')?.value||'';
-
-  const sameDay=(iso,ymd)=>{
-    if(!ymd) return true; if(!iso) return false;
-    const d=new Date(iso); const yy=d.getFullYear();
-    const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0');
-    return `${yy}-${mm}-${dd}`===ymd;
-  };
-
-  let list=(JSON.parse(localStorage.getItem('ingredientRequests'))||[]).slice();
-
-  if(q){
-    list=list.filter(r=>
-      (r.uniqueCode||'').toLowerCase().includes(q) ||
-      (r.fgItemId||'').toLowerCase().includes(q) ||
-      (r.ingredientItemId||'').toLowerCase().includes(q)
-    );
-  }
-  if(day) list=list.filter(r=>sameDay(r.requestedTime,day));
-  if(picker) list=list.filter(r=>(r.assignedTo||'')===picker);
-
-  list.sort((a,b)=>new Date(b.requestedTime||0)-new Date(a.requestedTime||0));
-  return list;
-}
-
+/* ---------- KPI ---------- */
 function renderKPI(){
-  const reqs=JSON.parse(localStorage.getItem('ingredientRequests'))||[];
-  const dels=JSON.parse(localStorage.getItem('deletedRequests'))||[];
-  const total=reqs.length+dels.length;
+  const reqs=JSON.parse(localStorage.getItem(key('requests')))||[];
+  const total=reqs.length;
   const completed=reqs.filter(r=>r.status==='completed').length;
   const pending=reqs.filter(r=>r.status==='pending').length;
   const avgList=reqs.filter(r=>r.pickDuration!=null);
-  const avg=avgList.length?Math.round(avgList.reduce((a,b)=>a+(b.pickDuration||0),0)/avgList.length):0;
-
+  const avg=avgList.length?Math.round(avgList.reduce((a,b)=>a+b.pickDuration,0)/avgList.length):0;
   document.getElementById('kpiTotal').textContent=total;
   document.getElementById('kpiCompleted').textContent=completed;
   document.getElementById('kpiPending').textContent=pending;
-  document.getElementById('kpiDeleted').textContent=dels.length;
-  document.getElementById('kpiAvg').textContent=avg?`${avg} min`:'--';
-
-  // fill picker filter once
-  const pickerSel=document.getElementById('kpiPicker');
-  if(pickerSel && pickerSel.options.length<=1){
-    const pickers=[...new Set(reqs.map(r=>r.assignedTo).filter(Boolean))].sort();
-    pickers.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;pickerSel.appendChild(o);});
-  }
-
-  renderKPIHistory();
-  renderKPIByPicker();
+  document.getElementById('kpiDeleted').textContent=0;
+  document.getElementById('kpiAvg').textContent=avg?avg+' min':'--';
+  const q=(document.getElementById('kpiSearch').value||'').toLowerCase();
+  const filtered=reqs.filter(r=>(r.uniqueCode||'').toLowerCase().includes(q)||(r.fgItemId||'').toLowerCase().includes(q));
+  document.getElementById('kpiHistory').innerHTML=filtered.map(r=>`<div class="request-card ${r.status==='completed'?'completed':''}">
+    <b>${r.uniqueCode}</b> – ${r.status}<br>FG: ${r.fgItemId} / ING: ${r.ingredientItemId}<br>
+    Qty: ${r.quantity} ${r.uom} • Line: ${r.line} • Entity: ${r.entity}
+  </div>`).join('')||'<div class="empty">No Records</div>';
 }
+document.getElementById('kpiSearch').addEventListener('input',renderKPI);
 
-function renderKPIHistory(){
-  const host=document.getElementById('kpiHistory');
-  const list=getFilteredRequests();
-  if(!list.length){ host.innerHTML=`<div class="empty">No matching records</div>`; return; }
-
-  host.innerHTML=list.map(r=>{
-    const start=r.pickStartTime?new Date(r.pickStartTime).toLocaleString():'--';
-    const complete=r.completedTime?new Date(r.completedTime).toLocaleString():'--';
-    const dur=(r.pickDuration!=null)?`${r.pickDuration} min`:'--';
-    const tag=(r.status==='completed'?'COMPLETED':r.status==='inProgress'?'IN PROGRESS':'PENDING');
-    return `<div class="request-card ${r.status==='completed'?'completed':''}">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <a style="font-weight:900;color:#16a34a;text-decoration:none">${r.uniqueCode}</a>
-        <div style="font-size:12px;color:#6b7280">${tag}</div>
-      </div>
-      <div style="margin-top:6px"><b>FG:</b> ${r.fgItemId||'—'} &nbsp; <b>ING:</b> ${r.ingredientItemId||'—'}</div>
-      <div><b>Qty:</b> ${r.quantity||'—'} ${r.uom||''} &nbsp; <b>Line:</b> ${r.line||'—'} &nbsp; <b>Area:</b> ${r.area||'—'}</div>
-      <div><b>Start:</b> ${start} &nbsp; <b>Complete:</b> ${complete} &nbsp; <b>Duration:</b> ${dur}</div>
-      <div style="font-size:12px;color:#6b7280"><b>User:</b> ${r.assignedTo||'—'} &nbsp; <b>Requested:</b> ${r.requestedTime?new Date(r.requestedTime).toLocaleString():'—'}</div>
-    </div>`;
-  }).join('');
-}
-
-function renderKPIByPicker(){
-  const host=document.getElementById('kpiByPicker');
-  const list=getFilteredRequests().filter(r=>r.status==='completed'&&r.assignedTo);
-  if(!list.length){ host.innerHTML=`<div class="empty">No completed records for the current filter.</div>`; return; }
-
-  const map={};
-  list.forEach(r=>{
-    const k=r.assignedTo; if(!map[k]) map[k]={count:0,durs:[]};
-    map[k].count++; if(r.pickDuration!=null) map[k].durs.push(r.pickDuration);
-  });
-
-  const rows=Object.entries(map).map(([picker,obj])=>{
-    const avg=obj.durs.length?Math.round(obj.durs.reduce((a,b)=>a+b,0)/obj.durs.length):0;
-    const fastest=obj.durs.length?Math.min(...obj.durs):0;
-    const slowest=obj.durs.length?Math.max(...obj.durs):0;
-    return `<tr><td>${picker}</td><td>${obj.count}</td><td>${avg?avg+' min':'--'}</td><td>${fastest?fastest+' min':'--'}</td><td>${slowest?slowest+' min':'--'}</td></tr>`;
-  }).join('');
-
-  host.innerHTML=`<table class="table">
-    <thead><tr><th>Picker</th><th>Completed</th><th>Avg Time</th><th>Fastest</th><th>Slowest</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table>`;
-}
-
-function initKpiControlsOnce(){
-  if(initKpiControlsOnce._done) return;
-  initKpiControlsOnce._done=true;
-  const date=document.getElementById('kpiDate');
-  const picker=document.getElementById('kpiPicker');
-  const search=document.getElementById('kpiSearch');
-  const apply=document.getElementById('kpiApply');
-  const reset=document.getElementById('kpiReset');
-  const rerender=()=>renderKPI();
-  if(search) search.addEventListener('input',()=>renderKPIHistory());
-  if(apply) apply.addEventListener('click',rerender);
-  if(reset) reset.addEventListener('click',()=>{ if(date)date.value=''; if(picker)picker.value=''; if(search)search.value=''; renderKPI(); });
-}
-
-/* --------------------
-          ADMIN
----------------------*/
+/* ---------- ADMIN ---------- */
 function addUser(){
-  let users=JSON.parse(localStorage.getItem('users'))||[];
-  const u=newUser.value.trim(), p=newPass.value.trim(),
-        r=newRole.value, a=newArea.value, e=newEntity.value;
-  if(!u||!p){alert('Username and password required');return;}
+  const entity=localStorage.getItem('currentEntity');
+  let users=JSON.parse(localStorage.getItem(`SmartProdLine365_${entity}_users`))||[];
+  const u=newUser.value.trim(),p=newPass.value.trim(),r=newRole.value,a=newArea.value;
+  if(!u||!p){alert('Username/password required');return;}
   if(users.find(x=>x.username===u)){alert('User already exists');return;}
-  users.push({username:u,password:p,role:r,area:a,entity:e,status:'Offline'});
-  localStorage.setItem('users',JSON.stringify(users));
-  newUser.value=''; newPass.value='';
-  renderAdmin(); renderAvailability();
-}
-
-function applyAutoOffline(users){
-  const now=Date.now(); let changed=false;
-  users.forEach(u=>{ u.autoOffline=false;
-    if(u.lastLogin){ const age=now-new Date(u.lastLogin).getTime();
-      if(age>TWO_HOURS && u.status!=='Offline'){ u.status='Offline'; u.autoOffline=true; changed=true; }
-    }
-  });
-  if(changed) localStorage.setItem('users',JSON.stringify(users));
-  return users;
+  users.push({username:u,password:p,role:r,area:a,entity,status:'Offline'});
+  localStorage.setItem(`SmartProdLine365_${entity}_users`,JSON.stringify(users));
+  newUser.value='';newPass.value='';renderAdmin();renderAvailability();
 }
 function renderAdmin(){
-  let users=JSON.parse(localStorage.getItem('users'))||[];
-  users=applyAutoOffline(users);
-
-  const rows=users.map((u,i)=>`
-    <tr class="${u.autoOffline?'tr-auto-off':''}">
-      <td>${u.username}</td>
-      <td>
-        <select data-i="${i}" data-f="role" class="input">
-          <option ${u.role==='Requester'?'selected':''}>Requester</option>
-          <option ${u.role==='Picker'?'selected':''}>Picker</option>
-          <option ${u.role==='Viewer'?'selected':''}>Viewer</option>
-          <option ${u.role==='Admin'?'selected':''}>Admin</option>
-        </select>
-      </td>
-      <td>
-        <select data-i="${i}" data-f="area" class="input">
-          <option ${u.area==='Deli'?'selected':''}>Deli</option>
-          <option ${u.area==='WIP'?'selected':''}>WIP</option>
-          <option ${u.area==='Packaging'?'selected':''}>Packaging</option>
-          <option ${u.area==='Produce'?'selected':''}>Produce</option>
-          <option ${u.area==='All'?'selected':''}>All</option>
-        </select>
-      </td>
-      <td>${formatLocal(u.lastLogin)}</td>
-      <td>${formatLocal(u.lastLogout)}</td>
-      <td>${u.status||'Offline'}</td>
-      <td><button class="btn btn-primary" onclick="saveUser(${i})">Save</button></td>
-    </tr>
-  `).join('');
-
-  adminUsers.innerHTML=`<table class="table">
-    <thead><tr><th>User</th><th>Role</th><th>Area</th><th>Last Login</th><th>Last Logout</th><th>Status</th><th></th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table>
-  <div style="margin-top:8px;color:#b91c1c;font-weight:700">Rows highlighted in red were auto-set to Offline (no login in last 2 hours).</div>`;
-}
-function saveUser(i){
-  let users=JSON.parse(localStorage.getItem('users'))||[];
-  const selects=adminUsers.querySelectorAll('select[data-i="'+i+'"]');
-  selects.forEach(s=>{ users[i][s.getAttribute('data-f')]=s.value; });
-  localStorage.setItem('users',JSON.stringify(users));
-  renderAvailability();
+  const entity=localStorage.getItem('currentEntity');
+  let users=JSON.parse(localStorage.getItem(`SmartProdLine365_${entity}_users`))||[];
+  adminUsers.innerHTML='<table class="table"><thead><tr><th>User</th><th>Role</th><th>Area</th><th>Status</th></tr></thead><tbody>'+
+  users.map(u=>`<tr><td>${u.username}</td><td>${u.role}</td><td>${u.area}</td><td>${u.status}</td></tr>`).join('')+'</tbody></table>';
 }
 function renderAvailability(){
-  let users=JSON.parse(localStorage.getItem('users'))||[];
-  users=applyAutoOffline(users);
+  const entity=localStorage.getItem('currentEntity');
+  let users=JSON.parse(localStorage.getItem(`SmartProdLine365_${entity}_users`))||[];
   const areas=['Deli','WIP','Packaging','Produce'];
-  let html='';
-  areas.forEach(a=>{
+  availabilityBoard.innerHTML=areas.map(a=>{
     const us=users.filter(u=>u.area===a||u.area==='All');
-    html+=`<div class='board-col'><h4>${a}</h4>${
-      us.length?us.map(u=>{
-        const c=u.status==='Available'?'user-av':u.status==='Lunch'?'user-lu':u.status==='Break'?'user-br':'user-off';
-        return `<div class='usercard ${c}'>${u.username} (${u.status||'Offline'})</div>`;
-      }).join(''):`<div class='empty'>No users</div>`
-    }</div>`;
-  });
-  availabilityBoard.innerHTML=html;
+    return `<div class='board-col'><h4>${a}</h4>${us.map(u=>{
+      const c=u.status==='Available'?'user-av':u.status==='Lunch'?'user-lu':u.status==='Break'?'user-br':'user-off';
+      return `<div class='usercard ${c}'>${u.username} (${u.status})</div>`;
+    }).join('')||'<div class="empty">No users</div>'}</div>`;
+  }).join('');
 }
 
-/* --------------------
-  REFRESH / AUTOSYNC
----------------------*/
-function softRefresh(){
-  requests=JSON.parse(localStorage.getItem('ingredientRequests'))||[];
-  deletedRequests=JSON.parse(localStorage.getItem('deletedRequests'))||[];
-  const active=document.querySelector('.panel.active');
-  if(active){
-    if(active.id==='panel-picking')renderPicking();
-    if(active.id==='panel-kpi')renderKPI();
-    if(active.id==='panel-admin'){renderAdmin();renderAvailability();}
-  }
-  const msg=document.createElement('div');
-  msg.textContent='Refreshed ✅';
-  msg.style='position:fixed;top:10px;right:20px;background:#10b981;color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;z-index:9999';
-  document.body.appendChild(msg); setTimeout(()=>msg.remove(),1000);
-}
-setInterval(()=>{
-  const a=document.querySelector('.panel.active');
-  if(a&&a.id==='panel-picking')renderPicking();
-  if(a&&a.id==='panel-admin'){renderAdmin();renderAvailability();}
-  if(a&&a.id==='panel-kpi')renderKPI();
-},30000);
+/* ---------- REFRESH ---------- */
+function softRefresh(){renderKPI();renderPicking();renderAdmin();renderAvailability();resetInactivityTimer();}
+setInterval(softRefresh,30000);
 
-/* --------------------
-       STARTUP
----------------------*/
+/* ---------- STARTUP ---------- */
 window.onload=()=>{
-  ensureAdmin();
   const me=JSON.parse(localStorage.getItem('currentUser')||'null');
-  if(me) boot();
+  if(me)boot();
+  resetInactivityTimer();
 };
-/* --------------------
-   AUTO LOGOUT (2 min)
----------------------*/
-let inactivityTimer;
-const AUTO_LOGOUT_MS = 2 * 60 * 1000; // 2 minutes
-
-function resetInactivityTimer() {
-  clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(() => {
-    const me = JSON.parse(localStorage.getItem('currentUser') || 'null');
-    if (me) {
-      alert('⏰ You have been logged out due to inactivity.');
-      logout();
-    }
-  }, AUTO_LOGOUT_MS);
-}
-
-// track user movement or activity
-['mousemove','keydown','click','scroll','touchstart'].forEach(evt => {
-  window.addEventListener(evt, resetInactivityTimer, false);
-});
-
-// start timer when page loads or user logs in
-window.addEventListener('load', resetInactivityTimer);
-
 </script>
 </body>
 </html>
