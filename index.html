@@ -778,6 +778,17 @@
         <button type="button" class="login-btn" onclick="doLogin()">
             <i class="fas fa-sign-in-alt"></i> Sign In
         </button>
+        <div style="display:flex; align-items:center; gap:12px; margin:16px 0 12px;">
+            <div style="height:1px; flex:1; background:rgba(255,255,255,0.25);"></div>
+            <span style="color:rgba(255,255,255,0.75); font-size:12px; font-weight:700; letter-spacing:0.08em;">OR</span>
+            <div style="height:1px; flex:1; background:rgba(255,255,255,0.25);"></div>
+        </div>
+        <button type="button" class="login-btn" onclick="signInWithMicrosoft()" style="background:#2563eb; margin-top:0;">
+            <i class="fab fa-microsoft"></i> Sign In with Microsoft
+        </button>
+        <div style="margin-top:10px; font-size:12px; color:rgba(255,255,255,0.82);">
+            Admin and Supervisor accounts must use Microsoft sign-in. User accounts continue with username and password.
+        </div>
         
         <div class="env-info">
             <div><b>Environment:</b> PRODUCTION</div>
@@ -3289,6 +3300,9 @@
 const SUPABASE_URL = 'https://weytkfsguavbygroinxp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndleXRrZnNndWF2Ynlncm9pbnhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMTQyMzcsImV4cCI6MjA4ODY5MDIzN30.p2BoCljxzjs2MgjDlTOB06Vgdt_P8VrO9lk9upjI0FM';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const AZURE_CLIENT_ID = '33dadb8c-7440-4c42-929e-a17e7f8323d0';
+const AZURE_TENANT_ID = 'ebe9d9b3-66e1-44c0-be56-ccffecc6d60d';
+const AZURE_REQUIRED_GROUP_ID = '6b3bc88d-01d5-4cc2-89f6-85b90201bad0';
 
 /* ===== SESSION HELPERS (sessionStorage for fast local state) ===== */
 function getSession() {
@@ -3351,37 +3365,22 @@ async function dbUpsert(table, row, onConflict) {
 /* ===== LOGIN HANDLING ===== */
 function handleLogin(e) { if(e) e.preventDefault(); doLogin(); }
 
-async function doLogin() {
-    var orgCode = (document.getElementById('loginOrgCode').value || '').trim().toUpperCase();
-    var username = (document.getElementById('loginUser').value || '').trim();
-    var password = (document.getElementById('loginPass').value || '').trim();
+function showLoginError(message) {
     var errorDiv = document.getElementById('loginError');
-    errorDiv.style.display = 'none';
+    if (!errorDiv) return;
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+}
+
+function clearLoginError() {
+    var errorDiv = document.getElementById('loginError');
+    if (!errorDiv) return;
     errorDiv.textContent = '';
+    errorDiv.style.display = 'none';
+}
 
-    if (!orgCode || !username || !password) {
-        errorDiv.textContent = 'Please fill in all fields.';
-        errorDiv.style.display = 'block';
-        return;
-    }
-
-    // Look up user
-    const users = await dbSelect('users', { entity_code: orgCode });
-    var user = users.find(function(u) {
-        return u.username.toLowerCase() === username.toLowerCase() && u.password === password;
-    });
-
-    if (!user) {
-        errorDiv.textContent = 'Invalid username or password for ' + orgCode + '.';
-        errorDiv.style.display = 'block';
-        return;
-    }
-
-    // Update last login status
-    await dbUpdate('users', { id: user.id }, { status: 'Active' });
-
-    // Set session
-    var sessionUser = {
+function buildSessionUser(user, orgCode) {
+    return {
         id: user.id,
         username: user.username,
         role: user.role || 'User',
@@ -3393,10 +3392,14 @@ async function doLogin() {
         employeeId: user.employee_id || '',
         email: user.email || '',
         status: user.status || 'Active',
-        shift: user.shift || ''
+        shift: user.shift || '',
+        authProvider: user.auth_provider || ''
     };
-    setSession(sessionUser, orgCode);
+}
 
+async function completeAppLogin(user, orgCode) {
+    await dbUpdate('users', { id: user.id }, { status: 'Active' });
+    setSession(buildSessionUser(user, orgCode), orgCode);
     document.getElementById('loginPage').style.display = 'none';
     document.getElementById('appContainer').style.display = 'flex';
     displayUserInfo();
@@ -3406,8 +3409,128 @@ async function doLogin() {
     showPage('home');
 }
 
+function parseJwtPayload(token) {
+    if (!token) return {};
+    try {
+        var parts = token.split('.');
+        if (parts.length < 2) return {};
+        var base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        var padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+        return JSON.parse(atob(padded));
+    } catch (err) {
+        console.error('Unable to parse JWT payload', err);
+        return {};
+    }
+}
+
+function getAzureGroupsFromSession(session) {
+    var providerClaims = parseJwtPayload(session ? session.provider_token : '');
+    var accessClaims = parseJwtPayload(session ? session.access_token : '');
+    var idClaims = parseJwtPayload(session && session.user ? session.user.id_token : '');
+    return providerClaims.groups || accessClaims.groups || idClaims.groups || [];
+}
+
+async function signInWithMicrosoft() {
+    clearLoginError();
+    if (window.location.protocol === 'file:') {
+        showLoginError('Microsoft sign-in requires the app to run from your hosted domain or localhost, not a file:// URL.');
+        return;
+    }
+
+    var redirectTo = window.location.origin + window.location.pathname;
+    var orgCode = (document.getElementById('loginOrgCode').value || '').trim().toUpperCase();
+    if (orgCode) sessionStorage.setItem('lastOrgCode', orgCode);
+
+    var result = await sb.auth.signInWithOAuth({
+        provider: 'azure',
+        options: {
+            redirectTo: redirectTo,
+            scopes: 'openid profile email'
+        }
+    });
+
+    if (result.error) {
+        showLoginError('Microsoft sign-in failed: ' + result.error.message);
+    }
+}
+
+async function handleMicrosoftSessionFromSupabase() {
+    var authResult = await sb.auth.getSession();
+    var session = authResult && authResult.data ? authResult.data.session : null;
+    if (!session || !session.user) return false;
+
+    var userEmail = String(session.user.email || '').trim().toLowerCase();
+    if (!userEmail) {
+        await sb.auth.signOut();
+        showLoginError('Microsoft sign-in failed: email address was not returned.');
+        return false;
+    }
+
+    var groupIds = getAzureGroupsFromSession(session);
+    if (!Array.isArray(groupIds) || groupIds.indexOf(AZURE_REQUIRED_GROUP_ID) === -1) {
+        await sb.auth.signOut();
+        showLoginError('Microsoft sign-in is only allowed for members of the approved Azure security group.');
+        return false;
+    }
+
+    var orgCode = sessionStorage.getItem('lastOrgCode') || (document.getElementById('loginOrgCode') || {}).value || 'TFNW';
+    orgCode = String(orgCode || '').trim().toUpperCase();
+    var users = await dbSelect('users', { entity_code: orgCode });
+    var matchedUser = users.find(function(u) {
+        return String(u.email || '').trim().toLowerCase() === userEmail;
+    });
+
+    if (!matchedUser) {
+        await sb.auth.signOut();
+        showLoginError('No SmartProdLine365 account matches your Microsoft email for organization ' + orgCode + '.');
+        return false;
+    }
+
+    if (matchedUser.role !== 'Admin' && matchedUser.role !== 'Supervisor') {
+        await sb.auth.signOut();
+        showLoginError('Microsoft sign-in is required only for Admin and Supervisor accounts.');
+        return false;
+    }
+
+    await completeAppLogin(matchedUser, orgCode);
+    return true;
+}
+
+async function doLogin() {
+    var orgCode = (document.getElementById('loginOrgCode').value || '').trim().toUpperCase();
+    var username = (document.getElementById('loginUser').value || '').trim();
+    var password = (document.getElementById('loginPass').value || '').trim();
+    clearLoginError();
+
+    if (!orgCode || !username || !password) {
+        showLoginError('Please fill in all fields.');
+        return;
+    }
+
+    // Look up user
+    const users = await dbSelect('users', { entity_code: orgCode });
+    var user = users.find(function(u) {
+        return u.username.toLowerCase() === username.toLowerCase() && u.password === password;
+    });
+
+    if (!user) {
+        showLoginError('Invalid username or password for ' + orgCode + '.');
+        return;
+    }
+
+    if (user.role === 'Admin' || user.role === 'Supervisor') {
+        showLoginError('Admin and Supervisor accounts must use Microsoft sign-in.');
+        return;
+    }
+
+    await completeAppLogin(user, orgCode);
+}
+
 /* ===== CHECK LOGIN STATUS ON LOAD ===== */
 async function checkLoginStatus() {
+    var handledMicrosoft = await handleMicrosoftSessionFromSupabase();
+    if (handledMicrosoft) return;
+
     var s = getSession();
     if (!s.user || !s.entity) {
         clearSession();
@@ -3446,17 +3569,18 @@ function displayUserInfo() {
 /* ===== LOGOUT ===== */
 async function logout() {
     const me = getMe();
-    const orgCode = getEntity();
     clearAutoLogoutTimer();
     AUTO_LOGOUT_MINUTES = 0;
     if (me && me.id) {
         await dbUpdate('users', { id: me.id }, { status: 'Inactive' });
     }
+    await sb.auth.signOut();
     clearSession();
     document.getElementById('appContainer').style.display = 'none';
     document.getElementById('loginPage').style.display = 'flex';
     document.getElementById('loginUser').value = '';
     document.getElementById('loginPass').value = '';
+    clearLoginError();
     var lastOrg = sessionStorage.getItem('lastOrgCode');
     if (lastOrg) document.getElementById('loginOrgCode').value = lastOrg;
 }
