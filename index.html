@@ -201,6 +201,23 @@
             margin-right: 10px;
         }
 
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 16px 20px 20px;
+            border-top: 1px solid #d1d5db;
+            color: #6b7280;
+            font-size: 11px;
+            line-height: 1.5;
+            background: rgba(255,255,255,0.55);
+        }
+
+        .sidebar-footer strong {
+            display: block;
+            color: #111827;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
         /* Main Content */
         .main-content {
             flex: 1;
@@ -639,6 +656,10 @@
                 overflow-y: auto;
                 padding-top: 0;
             }
+
+            .sidebar-footer {
+                padding-bottom: 28px;
+            }
             
             .sidebar.show {
                 transform: translateX(0);
@@ -761,9 +782,6 @@
         <div class="env-info">
             <div><b>Environment:</b> PRODUCTION</div>
             <div><b>Version:</b> 2.0.0</div>
-            <div style="margin-top: 10px; font-size: 11px; opacity: 0.8;">
-                Default: org code <b>TFNW</b> · admin / admin123
-            </div>
             <div style="margin-top: 10px;">
                 <a href="#" onclick="sessionStorage.clear(); location.reload(); return false;" style="color: rgba(255,255,255,0.6); font-size: 11px; text-decoration: underline;">Having trouble? Clear session &amp; reload</a>
             </div>
@@ -821,6 +839,11 @@
         <a data-min-role="Admin" href="#" onclick="showPage('admin-assign'); return false;"><i class="fas fa-user-check"></i> Assign Tasks & Training</a>
         <a data-min-role="Admin" href="#" onclick="showPage('admin-results'); return false;"><i class="fas fa-chart-pie"></i> Results Dashboard</a>
         <a data-min-role="Admin" href="#" onclick="showPage('admin-settings'); return false;"><i class="fas fa-sliders-h"></i> App Settings</a>
+
+        <div class="sidebar-footer">
+            <strong>SmartProdLine365 v2.0.0</strong>
+            <div>&copy; 2026 Taylor Farms. All rights reserved.</div>
+        </div>
 
     </div>
 
@@ -965,28 +988,32 @@
             <!-- TRAINING CALENDAR PAGE -->
             <div id="page-training-calendar" class="page-view">
                 <div class="section-panel">
-                    <h2><i class="fas fa-calendar-alt"></i> Training Calendar</h2>
-                    <p style="color:#555; margin-bottom:20px; font-size:14px;">Your scheduled training sessions.</p>
-                    <!-- Month Nav -->
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-                        <div style="display:flex; align-items:center; gap:12px;">
-                            <button onclick="changeCalMonth(-1)" style="background:#f3f4f6; border:none; border-radius:8px; width:36px; height:36px; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center;">&#8249;</button>
-                            <div id="calMonthLabel" style="font-size:20px; font-weight:800; color:#111; min-width:190px; text-align:center;"></div>
-                            <button onclick="changeCalMonth(1)" style="background:#f3f4f6; border:none; border-radius:8px; width:36px; height:36px; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center;">&#8250;</button>
+                    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:22px;">
+                        <div>
+                            <h2 style="margin:0 0 14px 0; padding-bottom:14px; border-bottom:4px solid #4CAF50;"><i class="fas fa-calendar-alt"></i> Training Calendar</h2>
+                            <p style="color:#555; font-size:14px; margin:0;">Your scheduled training sessions.</p>
                         </div>
-                        <button id="btnAddCalEvent" onclick="openAddCalEventModal()" class="btn btn-primary" style="display:none;"><i class="fas fa-plus"></i> Add Training Session</button>
                     </div>
-                    <!-- Legend -->
-                    <div style="display:flex; gap:20px; margin-bottom:16px; flex-wrap:wrap;">
-                        <span style="display:flex; align-items:center; gap:6px; font-size:13px;"><span style="width:12px; height:12px; background:#10b981; border-radius:3px; display:inline-block;"></span> Completed</span>
-                        <span style="display:flex; align-items:center; gap:6px; font-size:13px;"><span style="width:12px; height:12px; background:#6366f1; border-radius:3px; display:inline-block;"></span> Scheduled</span>
-                        <span style="display:flex; align-items:center; gap:6px; font-size:13px;"><span style="width:12px; height:12px; background:#f59e0b; border-radius:3px; display:inline-block;"></span> Overdue</span>
+
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:18px;">
+                        <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                            <button onclick="changeCalMonth(-1)" style="background:#f3f4f6; border:none; border-radius:14px; width:62px; height:62px; cursor:pointer; font-size:34px; color:#111; display:flex; align-items:center; justify-content:center; box-shadow:inset 0 0 0 1px #e5e7eb;">&#8249;</button>
+                            <div id="calMonthLabel" style="font-size:34px; font-weight:900; color:#111; min-width:260px;"></div>
+                            <button onclick="changeCalMonth(1)" style="background:#f3f4f6; border:none; border-radius:14px; width:62px; height:62px; cursor:pointer; font-size:34px; color:#111; display:flex; align-items:center; justify-content:center; box-shadow:inset 0 0 0 1px #e5e7eb;">&#8250;</button>
+                        </div>
+                        <button id="btnAddCalEvent" onclick="openAddCalEventModal()" class="btn btn-primary" style="display:none; padding:14px 24px; border-radius:14px; background:#10b981; font-size:14px;"><i class="fas fa-plus"></i> Add Training Session</button>
                     </div>
-                    <!-- Calendar -->
-                    <div id="calendarGrid" style="background:white; border-radius:12px; overflow:hidden; border:1px solid #e5e7eb;"></div>
-                    <!-- Sessions List -->
-                    <div style="margin-top:24px;">
-                        <div style="font-size:15px; font-weight:700; color:#111; margin-bottom:12px;"><i class="fas fa-list"></i> All Scheduled Sessions</div>
+
+                    <div style="display:flex; gap:28px; margin-bottom:22px; flex-wrap:wrap;">
+                        <span style="display:flex; align-items:center; gap:10px; font-size:13px; font-weight:700; color:#111;"><span style="width:18px; height:18px; background:#10b981; border-radius:5px; display:inline-block;"></span> Completed</span>
+                        <span style="display:flex; align-items:center; gap:10px; font-size:13px; font-weight:700; color:#111;"><span style="width:18px; height:18px; background:#6366f1; border-radius:5px; display:inline-block;"></span> Scheduled</span>
+                        <span style="display:flex; align-items:center; gap:10px; font-size:13px; font-weight:700; color:#111;"><span style="width:18px; height:18px; background:#f59e0b; border-radius:5px; display:inline-block;"></span> Overdue</span>
+                    </div>
+
+                    <div id="calendarGrid" style="background:white; border-radius:22px; overflow:hidden; border:1px solid #d1d5db;"></div>
+
+                    <div style="margin-top:38px;">
+                        <div style="font-size:16px; font-weight:800; color:#111; margin-bottom:14px;"><i class="fas fa-list"></i> All Scheduled Sessions</div>
                         <div id="calEventsList" style="display:flex; flex-direction:column; gap:10px;"></div>
                     </div>
                 </div>
@@ -2008,6 +2035,9 @@
                         <button id="stab-branding" onclick="switchSettingsTab('branding')" style="padding:10px 20px; border:none; background:none; cursor:pointer; font-weight:600; font-size:13px; color:#6b7280; border-bottom:3px solid transparent; margin-bottom:-2px; white-space:nowrap;">
                             <i class="fas fa-building"></i> Branding
                         </button>
+                        <button id="stab-security" onclick="switchSettingsTab('security')" style="padding:10px 20px; border:none; background:none; cursor:pointer; font-weight:600; font-size:13px; color:#6b7280; border-bottom:3px solid transparent; margin-bottom:-2px; white-space:nowrap;">
+                            <i class="fas fa-user-shield"></i> Security
+                        </button>
                     </div>
 
                     <!-- TAB: Counseling Types -->
@@ -2084,13 +2114,45 @@
                                 </div>
                             </div>
                             <div>
-                                <label style="display:block; font-weight:700; font-size:12px; color:#374151; margin-bottom:6px;">Logo URL (optional)</label>
-                                <input id="brandingLogoUrl" class="input" placeholder="https://.../logo.png" style="margin:0;">
-                                <div style="font-size:11px; color:#9ca3af; margin-top:6px;">If empty, a default icon is shown.</div>
+                                <label style="display:block; font-weight:700; font-size:12px; color:#374151; margin-bottom:6px;">Logo Image (optional)</label>
+                                <input id="brandingLogoFile" type="file" accept="image/*" class="input" onchange="handleBrandingLogoUpload(event)" style="margin:0;">
+                                <div id="brandingLogoPreview" style="margin-top:10px; display:none;">
+                                    <img id="brandingLogoPreviewImg" src="" alt="Logo Preview" style="max-width:180px; max-height:80px; object-fit:contain; border:1px solid #e5e7eb; border-radius:8px; background:white; padding:8px;">
+                                </div>
+                                <div style="font-size:11px; color:#9ca3af; margin-top:6px;">Upload an image from this device. If empty, a default icon is shown.</div>
                             </div>
                             <div style="display:flex; gap:10px; flex-wrap:wrap;">
                                 <button onclick="saveBrandingSettings()" class="btn btn-success"><i class="fas fa-save"></i> Save Branding</button>
                                 <button onclick="resetBrandingSettings()" style="padding:10px 16px; border:1px solid #e5e7eb; border-radius:8px; background:white; cursor:pointer; font-weight:600;">Reset</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: Security -->
+                    <div id="stab-panel-security" style="display:none;">
+                        <div style="max-width:700px; display:grid; gap:14px;">
+                            <div>
+                                <div style="font-weight:700; font-size:15px; color:#111;">Session Security</div>
+                                <div style="font-size:12px; color:#888; margin-top:2px;">Control whether inactive users are logged out automatically for this entity.</div>
+                            </div>
+                            <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:12px; padding:16px; display:grid; gap:14px;">
+                                <label style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
+                                    <div>
+                                        <div style="font-weight:700; font-size:13px; color:#111;">Enable Auto Logout</div>
+                                        <div style="font-size:12px; color:#6b7280; margin-top:3px;">Users will be signed out after a period of inactivity.</div>
+                                    </div>
+                                    <input type="checkbox" id="securityAutoLogoutEnabled" style="width:20px; height:20px; accent-color:#16a34a;">
+                                </label>
+                                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;">
+                                    <div>
+                                        <label style="display:block; font-weight:700; font-size:12px; color:#374151; margin-bottom:6px;">Auto Logout Time (minutes)</label>
+                                        <input id="securityAutoLogoutMinutes" type="number" min="1" max="480" class="input" placeholder="e.g. 15" style="margin:0;">
+                                        <div style="font-size:11px; color:#9ca3af; margin-top:6px;">Allowed range: 1 to 480 minutes.</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                    <button onclick="saveSecuritySettings()" class="btn btn-success"><i class="fas fa-save"></i> Save Security</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -3286,19 +3348,6 @@ async function dbUpsert(table, row, onConflict) {
 }
 
 
-/* ===== INITIALIZATION ===== */
-async function ensureAdmin(entityCode) {
-    const existing = await dbSelect('users', { username: 'admin', entity_code: entityCode });
-    if (existing.length === 0) {
-        await dbInsert('users', {
-            username: 'admin', password: 'admin123', role: 'Admin', area: 'All',
-            entity_code: entityCode, department: 'Management',
-            first_name: 'Admin', last_name: 'User', employee_id: 'ADMIN001',
-            email: 'admin@taylorfarms.com', status: 'Active'
-        });
-    }
-}
-
 /* ===== LOGIN HANDLING ===== */
 function handleLogin(e) { if(e) e.preventDefault(); doLogin(); }
 
@@ -3315,9 +3364,6 @@ async function doLogin() {
         errorDiv.style.display = 'block';
         return;
     }
-
-    // Ensure admin exists for this org
-    await ensureAdmin(orgCode);
 
     // Look up user
     const users = await dbSelect('users', { entity_code: orgCode });
@@ -3354,7 +3400,9 @@ async function doLogin() {
     document.getElementById('loginPage').style.display = 'none';
     document.getElementById('appContainer').style.display = 'flex';
     displayUserInfo();
+    await applyBranding();
     applySidebarVisibility();
+    await applyAutoLogoutSettings();
     showPage('home');
 }
 
@@ -3374,7 +3422,9 @@ async function checkLoginStatus() {
     document.getElementById('loginPage').style.display = 'none';
     document.getElementById('appContainer').style.display = 'flex';
     displayUserInfo();
+    await applyBranding();
     applySidebarVisibility();
+    await applyAutoLogoutSettings();
     showPage('home');
 }
 
@@ -3397,6 +3447,8 @@ function displayUserInfo() {
 async function logout() {
     const me = getMe();
     const orgCode = getEntity();
+    clearAutoLogoutTimer();
+    AUTO_LOGOUT_MINUTES = 0;
     if (me && me.id) {
         await dbUpdate('users', { id: me.id }, { status: 'Inactive' });
     }
@@ -3627,6 +3679,7 @@ async function saveNewUser(event) {
 async function adminRenderUsers() {
     var entity = getEntity();
     var users = await dbSelect('users', { entity_code: entity });
+    users = users.filter(function(u) { return (u.username || '').toLowerCase() !== 'admin'; });
 
     // Apply role filter
     var roleFilter = document.getElementById('adminRoleFilter');
@@ -4484,10 +4537,15 @@ async function softRefresh() {
 
 /* ===== SETTINGS - TAB SWITCHING ===== */
 var currentSettingsTab = 'counseling';
+var AUTO_LOGOUT_TIMER = null;
+var AUTO_LOGOUT_MINUTES = 0;
+var AUTO_LOGOUT_EVENTS_BOUND = false;
+var AUTO_LOGOUT_EVENTS = ['click', 'keydown', 'mousemove', 'touchstart', 'scroll'];
+var BRANDING_LOGO_DATA = '';
 
 function switchSettingsTab(tab) {
     currentSettingsTab = tab;
-    ['counseling','departments','roles','incidents','branding'].forEach(function(t) {
+    ['counseling','departments','roles','incidents','branding','security'].forEach(function(t) {
         var panel = document.getElementById('stab-panel-' + t);
         var btn = document.getElementById('stab-' + t);
         if (panel) panel.style.display = t === tab ? 'block' : 'none';
@@ -4502,6 +4560,8 @@ function switchSettingsTab(tab) {
 function initSettingsPage() {
     switchSettingsTab('counseling');
     refreshSettingsTabCounts();
+    loadSecuritySettings();
+    loadBrandingSettingsForm();
 }
 
 async function refreshSettingsTabCounts() {
@@ -4522,6 +4582,164 @@ async function getSettingsData(category) {
     var entity = getEntity();
     var items = await dbSelect('app_settings', { entity_code: entity, category: category });
     return items.map(function(item) { return item.key || ''; }).filter(Boolean);
+}
+
+async function getSecuritySettings() {
+    var entity = getEntity();
+    var rows = await dbSelect('app_settings', { entity_code: entity, category: 'security' });
+    var configRow = rows.find(function(row) { return row.key === 'config'; });
+    var value = configRow && configRow.value ? configRow.value : {};
+    var minutes = parseInt(value.autoLogoutMinutes, 10);
+    if (!minutes || minutes < 1) minutes = 15;
+    return {
+        autoLogoutEnabled: !!value.autoLogoutEnabled,
+        autoLogoutMinutes: minutes
+    };
+}
+
+async function getBrandingSettings() {
+    var entity = getEntity();
+    var rows = await dbSelect('app_settings', { entity_code: entity, category: 'branding' });
+    var configRow = rows.find(function(row) { return row.key === 'config'; });
+    var value = configRow && configRow.value ? configRow.value : {};
+    return {
+        orgName: value.orgName || 'Organization',
+        entityName: value.entityName || 'Entity',
+        logo: value.logo || ''
+    };
+}
+
+function setBrandingLogoPreview(logoData) {
+    var preview = document.getElementById('brandingLogoPreview');
+    var img = document.getElementById('brandingLogoPreviewImg');
+    if (!preview || !img) return;
+    if (logoData) {
+        img.src = logoData;
+        preview.style.display = 'block';
+    } else {
+        img.src = '';
+        preview.style.display = 'none';
+    }
+}
+
+function handleBrandingLogoUpload(event) {
+    var input = event && event.target ? event.target : null;
+    if (!input || !input.files || !input.files[0]) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        BRANDING_LOGO_DATA = e.target ? e.target.result : '';
+        setBrandingLogoPreview(BRANDING_LOGO_DATA);
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+
+async function loadBrandingSettingsForm() {
+    var settings = await getBrandingSettings();
+    var orgEl = document.getElementById('brandingOrgName');
+    var entityEl = document.getElementById('brandingEntityName');
+    var fileEl = document.getElementById('brandingLogoFile');
+    if (orgEl) orgEl.value = settings.orgName;
+    if (entityEl) entityEl.value = settings.entityName;
+    if (fileEl) fileEl.value = '';
+    BRANDING_LOGO_DATA = settings.logo || '';
+    setBrandingLogoPreview(BRANDING_LOGO_DATA);
+}
+
+async function applyBranding() {
+    var settings = await getBrandingSettings();
+    var orgHeader = document.getElementById('headerOrgName');
+    var entityHeader = document.getElementById('headerEntityName');
+    var logoImg = document.getElementById('brandLogoImg');
+    var logoIcon = document.getElementById('brandLogoIcon');
+
+    if (orgHeader) orgHeader.textContent = settings.orgName || 'Organization';
+    if (entityHeader) entityHeader.textContent = settings.entityName || getEntity() || 'Entity';
+
+    if (logoImg && logoIcon) {
+        if (settings.logo) {
+            logoImg.src = settings.logo;
+            logoImg.style.display = 'inline-flex';
+            logoIcon.style.display = 'none';
+        } else {
+            logoImg.src = '';
+            logoImg.style.display = 'none';
+            logoIcon.style.display = 'inline-flex';
+        }
+    }
+}
+
+async function loadSecuritySettings() {
+    var settings = await getSecuritySettings();
+    var enabledEl = document.getElementById('securityAutoLogoutEnabled');
+    var minutesEl = document.getElementById('securityAutoLogoutMinutes');
+    if (enabledEl) enabledEl.checked = settings.autoLogoutEnabled;
+    if (minutesEl) minutesEl.value = settings.autoLogoutMinutes;
+}
+
+async function saveSecuritySettings() {
+    var entity = getEntity();
+    var enabledEl = document.getElementById('securityAutoLogoutEnabled');
+    var minutesEl = document.getElementById('securityAutoLogoutMinutes');
+    var enabled = !!(enabledEl && enabledEl.checked);
+    var minutes = parseInt(minutesEl ? minutesEl.value : '', 10);
+
+    if (!minutes || minutes < 1 || minutes > 480) {
+        alert('Please enter an auto logout time between 1 and 480 minutes.');
+        return;
+    }
+
+    await dbDelete('app_settings', { entity_code: entity, category: 'security' });
+    await dbInsert('app_settings', {
+        entity_code: entity,
+        category: 'security',
+        key: 'config',
+        value: {
+            autoLogoutEnabled: enabled,
+            autoLogoutMinutes: minutes
+        }
+    });
+
+    await applyAutoLogoutSettings();
+    alert('✅ Security settings saved!');
+}
+
+function clearAutoLogoutTimer() {
+    if (AUTO_LOGOUT_TIMER) {
+        clearTimeout(AUTO_LOGOUT_TIMER);
+        AUTO_LOGOUT_TIMER = null;
+    }
+}
+
+function handleAutoLogoutActivity() {
+    if (!AUTO_LOGOUT_MINUTES || !getMe()) return;
+    clearAutoLogoutTimer();
+    AUTO_LOGOUT_TIMER = setTimeout(async function() {
+        if (!getMe()) return;
+        alert('You have been logged out due to inactivity.');
+        await logout();
+    }, AUTO_LOGOUT_MINUTES * 60 * 1000);
+}
+
+function bindAutoLogoutEvents() {
+    if (AUTO_LOGOUT_EVENTS_BOUND) return;
+    AUTO_LOGOUT_EVENTS.forEach(function(eventName) {
+        document.addEventListener(eventName, handleAutoLogoutActivity, { passive: true });
+    });
+    AUTO_LOGOUT_EVENTS_BOUND = true;
+}
+
+async function applyAutoLogoutSettings() {
+    clearAutoLogoutTimer();
+    AUTO_LOGOUT_MINUTES = 0;
+
+    if (!getMe()) return;
+
+    var settings = await getSecuritySettings();
+    if (!settings.autoLogoutEnabled) return;
+
+    AUTO_LOGOUT_MINUTES = settings.autoLogoutMinutes;
+    bindAutoLogoutEvents();
+    handleAutoLogoutActivity();
 }
 
 async function saveSettingsData(category, data) {
@@ -4614,18 +4832,23 @@ async function deleteSettingItem(category, index) {
 }
 
 async function saveBrandingSettings() {
-    // Branding saved as a single settings entry with JSONB value
     var entity = getEntity();
-    var logo = (document.getElementById('brandingLogo') || {}).value || '';
-    var primaryColor = (document.getElementById('brandingPrimary') || {}).value || '#4CAF50';
+    var orgName = (document.getElementById('brandingOrgName') || {}).value || '';
+    var entityName = (document.getElementById('brandingEntityName') || {}).value || '';
+    var logo = BRANDING_LOGO_DATA || '';
 
     await dbDelete('app_settings', { entity_code: entity, category: 'branding' });
     await dbInsert('app_settings', {
         entity_code: entity,
         category: 'branding',
         key: 'config',
-        value: { logo: logo, primaryColor: primaryColor }
+        value: {
+            orgName: orgName,
+            entityName: entityName,
+            logo: logo
+        }
     });
+    await applyBranding();
     alert('✅ Branding settings saved!');
 }
 
@@ -5771,45 +5994,82 @@ async function renderCalendar() {
     var firstDay = new Date(calCurrentYear, calCurrentMonth, 1).getDay();
     var daysInMonth = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
 
-    var html = '';
-    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function(d) {
-        html += '<div style="text-align:center; font-weight:700; font-size:12px; color:#6b7280; padding:8px;">' + d + '</div>';
+    var todayStr = new Date().toISOString().slice(0,10);
+    var dayHeaders = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    var totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+    var html = '<div style="display:grid; grid-template-columns:repeat(7,minmax(120px,1fr));">';
+
+    dayHeaders.forEach(function(d) {
+        html += '<div style="padding:16px 12px; text-align:center; font-weight:800; font-size:12px; color:#5b5b5b; background:#f3f4f6; border-bottom:1px solid #d1d5db;">' + d + '</div>';
     });
 
-    for (var i = 0; i < firstDay; i++) {
-        html += '<div></div>';
-    }
+    for (var cell = 0; cell < totalCells; cell++) {
+        var dayNumber = cell - firstDay + 1;
+        var inMonth = dayNumber >= 1 && dayNumber <= daysInMonth;
+        if (!inMonth) {
+            html += '<div style="min-height:150px; background:#fafafa; border-right:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb;"></div>';
+            continue;
+        }
 
-    for (var day = 1; day <= daysInMonth; day++) {
-        var dateStr = calCurrentYear + '-' + String(calCurrentMonth + 1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+        var dateStr = calCurrentYear + '-' + String(calCurrentMonth + 1).padStart(2,'0') + '-' + String(dayNumber).padStart(2,'0');
         var dayEvents = events.filter(function(e) { return e.event_date === dateStr; });
-        var isToday = dateStr === new Date().toISOString().slice(0,10);
+        var isToday = dateStr === todayStr;
+        var status = dayEvents.length ? String(dayEvents[0].status || 'scheduled').toLowerCase() : '';
+        var highlight = status === 'completed' ? '#ecfdf5' : status === 'overdue' ? '#fff7ed' : dayEvents.length ? '#eef2ff' : '#ffffff';
+        var dotColor = status === 'completed' ? '#10b981' : status === 'overdue' ? '#f59e0b' : '#6366f1';
 
-        html += '<div style="min-height:80px; border:1px solid #e5e7eb; border-radius:8px; padding:4px; background:' + (isToday ? '#eff6ff' : 'white') + ';">' +
-            '<div style="font-size:12px; font-weight:' + (isToday ? '800' : '500') + '; color:' + (isToday ? '#2563eb' : '#374151') + '; margin-bottom:4px;">' + day + '</div>';
+        html += '<div style="min-height:150px; padding:14px; background:' + highlight + '; border-right:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; position:relative; overflow:hidden;">';
 
-        dayEvents.forEach(function(ev, evIdx) {
-            var statusColor = ev.status === 'completed' ? '#10b981' : ev.status === 'overdue' ? '#ef4444' : '#3b82f6';
-            html += '<div style="background:' + statusColor + '15; border-left:3px solid ' + statusColor + '; padding:2px 4px; margin-bottom:2px; border-radius:4px; font-size:10px; cursor:pointer;" title="' + (ev.title || '') + '">' +
-                (ev.title || '').substring(0,15) + '</div>';
-        });
+        if (isToday || dayEvents.length) {
+            html += '<div style="display:inline-flex; align-items:center; justify-content:center; width:42px; height:42px; border-radius:999px; font-size:15px; font-weight:900; color:white; background:' + dotColor + '; box-shadow:0 8px 18px ' + dotColor + '40;">' + dayNumber + '</div>';
+        } else {
+            html += '<div style="font-size:18px; font-weight:800; color:#374151;">' + dayNumber + '</div>';
+        }
+
+        if (dayEvents.length) {
+            html += '<div style="margin-top:12px; display:flex; flex-direction:column; gap:6px;">';
+            dayEvents.slice(0, 2).forEach(function(ev) {
+                var evStatus = String(ev.status || 'scheduled').toLowerCase();
+                var evColor = evStatus === 'completed' ? '#10b981' : evStatus === 'overdue' ? '#f59e0b' : '#6366f1';
+                html += '<div title="' + (ev.title || '') + '" style="font-size:11px; font-weight:700; color:#111; background:white; border-radius:10px; padding:7px 9px; box-shadow:inset 0 0 0 1px ' + evColor + '33; border-left:4px solid ' + evColor + '; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + (ev.title || 'Training Session') + '</div>';
+            });
+            if (dayEvents.length > 2) {
+                html += '<div style="font-size:11px; font-weight:700; color:#6b7280; padding-left:2px;">+' + (dayEvents.length - 2) + ' more</div>';
+            }
+            html += '</div>';
+        }
 
         html += '</div>';
     }
 
+    html += '</div>';
     grid.innerHTML = html;
 
     // Upcoming events list
-    var upcoming = events.filter(function(e) { return e.event_date >= new Date().toISOString().slice(0,10); });
-    upcoming.sort(function(a,b) { return a.event_date.localeCompare(b.event_date); });
-    var list = document.getElementById('calUpcomingList');
+    var upcoming = events.slice().sort(function(a,b) {
+        var aKey = (a.event_date || '') + ' ' + (a.event_time || '');
+        var bKey = (b.event_date || '') + ' ' + (b.event_time || '');
+        return aKey.localeCompare(bKey);
+    });
+    var list = document.getElementById('calEventsList');
     if (list) {
-        list.innerHTML = upcoming.slice(0, 10).map(function(ev, idx) {
-            return '<div style="padding:10px; border:1px solid #e5e7eb; border-radius:8px; margin-bottom:6px;">' +
-                '<div style="font-weight:600;">' + (ev.title || '') + '</div>' +
-                '<div style="font-size:12px; color:#888;">' + (ev.event_date || '') + (ev.event_time ? ' at ' + ev.event_time : '') + (ev.trainer ? ' · ' + ev.trainer : '') + '</div>' +
-                '<button onclick="editCalEvent(' + idx + ')" style="font-size:11px; padding:2px 8px; border:1px solid #bfdbfe; border-radius:4px; background:#eff6ff; cursor:pointer; color:#1d4ed8; margin-top:4px;"><i class="fas fa-edit"></i></button> ' +
-                '<button onclick="deleteCalEvent(' + idx + ')" style="font-size:11px; padding:2px 8px; border:1px solid #fecaca; border-radius:4px; background:#fef2f2; cursor:pointer; color:#dc2626; margin-top:4px;"><i class="fas fa-trash"></i></button>' +
+        if (upcoming.length === 0) {
+            list.innerHTML = '<div style="padding:18px; border:1px dashed #d1d5db; border-radius:14px; color:#9ca3af; background:#fafafa;">No training sessions scheduled yet.</div>';
+            return;
+        }
+        list.innerHTML = upcoming.map(function(ev, idx) {
+            var evStatus = String(ev.status || 'scheduled').toLowerCase();
+            var evColor = evStatus === 'completed' ? '#10b981' : evStatus === 'overdue' ? '#f59e0b' : '#6366f1';
+            return '<div style="padding:14px 16px; border:1px solid #e5e7eb; border-radius:14px; background:white; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">' +
+                '<div>' +
+                    '<div style="font-weight:800; color:#111; margin-bottom:4px;">' + (ev.title || '') + '</div>' +
+                    '<div style="font-size:12px; color:#6b7280;">' + (ev.event_date || '') + (ev.event_time ? ' at ' + ev.event_time : '') + (ev.trainer ? ' · ' + ev.trainer : '') + (ev.location ? ' · ' + ev.location : '') + '</div>' +
+                '</div>' +
+                '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                    '<span style="padding:6px 10px; border-radius:999px; background:' + evColor + '15; color:' + evColor + '; font-size:11px; font-weight:800; text-transform:capitalize;">' + evStatus + '</span>' +
+                    '<button onclick="editCalEvent(' + idx + ')" style="font-size:11px; padding:6px 10px; border:1px solid #bfdbfe; border-radius:8px; background:#eff6ff; cursor:pointer; color:#1d4ed8;"><i class="fas fa-edit"></i></button>' +
+                    '<button onclick="deleteCalEvent(' + idx + ')" style="font-size:11px; padding:6px 10px; border:1px solid #fecaca; border-radius:8px; background:#fef2f2; cursor:pointer; color:#dc2626;"><i class="fas fa-trash"></i></button>' +
+                '</div>' +
             '</div>';
         }).join('');
     }
@@ -6045,7 +6305,20 @@ function removeConcernImage() {
 function exportSafetyReports() { alert('CSV export coming soon.'); }
 function exportSafetyConcerns() { alert('CSV export coming soon.'); }
 function renderAdminResultsDashboard() { renderAdminResults(); }
-function resetBrandingSettings() { alert('Branding reset.'); }
+async function resetBrandingSettings() {
+    var entity = getEntity();
+    await dbDelete('app_settings', { entity_code: entity, category: 'branding' });
+    BRANDING_LOGO_DATA = '';
+    var orgEl = document.getElementById('brandingOrgName');
+    var entityEl = document.getElementById('brandingEntityName');
+    var fileEl = document.getElementById('brandingLogoFile');
+    if (orgEl) orgEl.value = '';
+    if (entityEl) entityEl.value = '';
+    if (fileEl) fileEl.value = '';
+    setBrandingLogoPreview('');
+    await applyBranding();
+    alert('Branding reset.');
+}
 function selectCounselingType(val) {
     var el = document.getElementById('coachCounselingType');
     if (el) el.value = val;
