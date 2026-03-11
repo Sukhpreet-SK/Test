@@ -164,6 +164,10 @@
             transition: transform 0.3s ease;
         }
 
+        .sidebar-mobile-header {
+            display: none;
+        }
+
         .sidebar h3 {
             padding: 10px 20px;
             font-size: 12px;
@@ -618,16 +622,100 @@
 
         /* Responsive */
         @media (max-width: 768px) {
+            .app-wrapper {
+                position: relative;
+            }
+
             .sidebar {
-                position: absolute;
+                position: fixed;
+                top: 0;
+                left: 0;
                 z-index: 1000;
-                height: 100%;
+                height: 100vh;
+                width: min(88vw, 320px);
                 transform: translateX(-100%);
                 background: var(--sidebar-bg);
+                box-shadow: 0 16px 40px rgba(0,0,0,0.22);
+                overflow-y: auto;
+                padding-top: 0;
             }
             
             .sidebar.show {
                 transform: translateX(0);
+            }
+
+            .sidebar-mobile-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 14px 16px;
+                background: #111827;
+                color: white;
+                position: sticky;
+                top: 0;
+                z-index: 2;
+            }
+
+            .sidebar-close-btn {
+                width: 40px;
+                height: 40px;
+                border: 1px solid rgba(255,255,255,0.18);
+                border-radius: 10px;
+                background: rgba(255,255,255,0.08);
+                color: white;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+            }
+
+            #sidebarBackdrop {
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.35);
+                z-index: 999;
+                display: none;
+            }
+
+            #sidebarBackdrop.show {
+                display: block;
+            }
+
+            .header-green,
+            .header-black {
+                height: auto;
+                min-height: 44px;
+                padding: 10px 12px;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .header-buttons {
+                width: auto;
+                gap: 8px;
+                flex-wrap: nowrap;
+                align-items: center;
+            }
+
+            .header-black {
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .header-buttons a,
+            .collapse-btn,
+            #alertBellBtn {
+                min-height: 40px;
+                font-size: 13px;
+                padding: 8px 10px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .content-container {
+                padding: 14px;
             }
 
             .kpi-grid {
@@ -688,6 +776,12 @@
     
     <!-- Sidebar Navigation -->
     <div class="sidebar" id="sidebar">
+        <div class="sidebar-mobile-header">
+            <strong>Menu</strong>
+            <button type="button" class="sidebar-close-btn" onclick="closeSidebar()" aria-label="Close menu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
 
         <!-- ALL ROLES -->
         <h3 data-min-role="User" id="sidebarFeedHeading"><i class="fas fa-newspaper"></i> FEED</h3>
@@ -730,6 +824,8 @@
 
     </div>
 
+    <div id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
     <!-- Main Content Area -->
     <div class="main-content">
         <!-- Top Headers -->
@@ -744,10 +840,8 @@
             <div class="header-buttons">
                 <button class="collapse-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
                 <a href="#" onclick="showPage('home'); return false;"><i class="fas fa-home"></i> Home</a>
-                <a href="https://app.powerbi.com/groups/me/apps/62daeca2-675d-4144-b9b9-6675d801ba5f/reports/b10924de-c017-435f-8d08-e8b65c3487d2/c98562193707320f0d09?experience=power-bi" target="_blank"><i class="fas fa-chart-bar"></i> Dashboard</a>
             </div>
             <div class="header-buttons">
-                <span id="userInfo">Loading...</span>
                 <button id="alertBellBtn" class="btn btn-success" onclick="toggleAlertsPanel(); return false;" style="border: 1px solid white; background: transparent; position: relative;"><i class="fas fa-bell"></i><span id="alertCountBadge" style="display:none; position:absolute; top:-6px; right:-6px; background:#ef4444; color:white; border-radius:999px; min-width:17px; height:17px; padding:0 4px; font-size:10px; font-weight:700; line-height:17px; text-align:center;">0</span></button>
                 <a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
@@ -823,7 +917,7 @@
                         <div id="homeQuickFeedLabel" style="font-weight:700; color:#111; font-size:14px;">Feed</div>
                         <div style="font-size:12px; color:#666; margin-top:4px;">Company news</div>
                     </button>
-                    <button onclick="showPage('incident')" style="background:white; border:2px solid #e5e7eb; border-radius:12px; padding:20px; text-align:center; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 8px rgba(0,0,0,0.06);" onmouseover="this.style.borderColor='#ef4444';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e5e7eb';this.style.transform='translateY(0)'">
+                    <button data-min-role="Supervisor" onclick="showPage('incident')" style="background:white; border:2px solid #e5e7eb; border-radius:12px; padding:20px; text-align:center; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 8px rgba(0,0,0,0.06);" onmouseover="this.style.borderColor='#ef4444';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e5e7eb';this.style.transform='translateY(0)'">
                         <i class="fas fa-shield-alt" style="font-size:28px; color:#ef4444; margin-bottom:8px; display:block;"></i>
                         <div style="font-weight:700; color:#111; font-size:14px;">Safety</div>
                         <div style="font-size:12px; color:#666; margin-top:4px;">Report incidents</div>
@@ -3346,11 +3440,47 @@ function isManagerUser(user) {
     return user.role === 'Admin' || user.role === 'Supervisor';
 }
 
+function canCreateFeedPosts(user) {
+    return isManagerUser(user);
+}
+
+var PAGE_ACCESS = {
+    'incident': 'Supervisor',
+    'safety-concern': 'Supervisor',
+    'safety-reports': 'Supervisor',
+    'safety-concerns': 'Supervisor',
+    'coaching-form': 'Supervisor',
+    'admin-users': 'Admin',
+    'admin-assign': 'Admin',
+    'admin-results': 'Admin',
+    'admin-settings': 'Admin'
+};
+
+function canAccessPage(pageId, user) {
+    var requiredRole = PAGE_ACCESS[pageId];
+    if (!requiredRole) return true;
+    var roleOrder = { 'User': 1, 'Supervisor': 2, 'Admin': 3 };
+    var currentUser = user || getMe();
+    var userLevel = currentUser ? (roleOrder[currentUser.role] || 1) : 0;
+    var requiredLevel = roleOrder[requiredRole] || 1;
+    return userLevel >= requiredLevel;
+}
+
+function closeSidebar() {
+    var sidebar = document.querySelector('.sidebar');
+    var backdrop = document.getElementById('sidebarBackdrop');
+    if (sidebar) sidebar.classList.remove('show');
+    if (backdrop) backdrop.classList.remove('show');
+}
+
 /* ===== NAVIGATION ===== */
 function toggleSidebar() {
     var sidebar = document.querySelector('.sidebar');
     if (!sidebar) return;
-    sidebar.style.transform = sidebar.style.transform === 'translateX(-100%)' ? 'translateX(0)' : 'translateX(-100%)';
+    var backdrop = document.getElementById('sidebarBackdrop');
+    var willShow = !sidebar.classList.contains('show');
+    sidebar.classList.toggle('show', willShow);
+    if (backdrop) backdrop.classList.toggle('show', willShow);
 }
 
 // Page-to-prefix mapping for TF Forms
@@ -3364,6 +3494,10 @@ var TF_PAGE_MAP = {
 
 function showPage(pageId) {
     console.log('[SmartProdLine365] showPage:', pageId);
+    if (!canAccessPage(pageId)) {
+        alert('Access denied. Only authorized roles can open this page.');
+        pageId = 'home';
+    }
     document.querySelectorAll('.page-view').forEach(function(p) { p.classList.remove('active'); });
     var target = document.getElementById('page-' + pageId);
     if (target) {
@@ -3409,6 +3543,8 @@ function showPage(pageId) {
     // TF Forms init
     var tfPrefix = TF_PAGE_MAP[pageId];
     if (tfPrefix) { tfFormInit(tfPrefix); tfRenderHistory(tfPrefix); }
+
+    if (window.innerWidth <= 768) closeSidebar();
 }
 
 /* ===== CODE GENERATOR ===== */
@@ -3652,7 +3788,9 @@ function openStream(streamId) {
         if (subtitleEl) subtitleEl.textContent = stream.dept;
         var iconEl = document.getElementById('stream-icon-header');
         if (iconEl) { iconEl.innerHTML = '<i class="fas ' + stream.icon + '" style="color:' + stream.color + '; font-size:20px;"></i>'; iconEl.style.background = stream.color + '15'; }
+        updateFeedComposerVisibility();
         renderSafetyFeed();
+        if (window.innerWidth <= 768) closeSidebar();
     }
 }
 
@@ -3693,10 +3831,29 @@ function cancelPost() {
 }
 
 function expandPostComposer() {
+    if (!canCreateFeedPosts(getMe())) {
+        alert('Only supervisors and admins can create feed posts.');
+        return;
+    }
     var composer = document.getElementById('postComposer');
     var inputBox = document.getElementById('streamPostInput');
     if (composer) composer.style.display = 'block';
     if (inputBox) inputBox.style.display = 'none';
+}
+
+function updateFeedComposerVisibility() {
+    var canPost = canCreateFeedPosts(getMe());
+    var section = document.getElementById('createPostSection');
+    var inputBox = document.getElementById('streamPostInput');
+    var composer = document.getElementById('postComposer');
+    if (!section || !inputBox) return;
+    if (!canPost) {
+        section.style.display = 'none';
+        if (composer) composer.style.display = 'none';
+        return;
+    }
+    section.style.display = 'block';
+    inputBox.style.display = 'flex';
 }
 
 function selectPostType(type) {
@@ -3733,6 +3890,10 @@ function handleVideoUpload(input) {
 }
 
 async function submitPost() {
+    if (!canCreateFeedPosts(getMe())) {
+        alert('Only supervisors and admins can create feed posts.');
+        return;
+    }
     var title = (document.getElementById('postTitle').value || '').trim();
     var message = (document.getElementById('postMessage').value || '').trim();
     var videoUrl = (document.getElementById('videoUrl') ? document.getElementById('videoUrl').value : '').trim();
@@ -5308,7 +5469,7 @@ function applySidebarVisibility() {
     var roleOrder = { 'User': 1, 'Supervisor': 2, 'Admin': 3 };
     var userLevel = roleOrder[me.role] || 1;
 
-    document.querySelectorAll('.sidebar [data-min-role]').forEach(function(el) {
+    document.querySelectorAll('[data-min-role]').forEach(function(el) {
         var minRole = el.getAttribute('data-min-role');
         var minLevel = roleOrder[minRole] || 1;
         el.style.display = userLevel >= minLevel ? '' : 'none';
